@@ -7,10 +7,10 @@
 #   ^step  <step-value>
 
 sp {bebot*list*range*elaborate*info
-  "Add info about this operator to the list*library structure on the
+  "Add info about this operator to the bebot*library structure on the
    top state."
   (state <s> ^superstate nil
-             ^list*library.operators <ops>)
+             ^bebot*library.operators <ops>)
 -->
   (<ops> ^bebot*list*range <args>)
   (<args> ^default <def> 

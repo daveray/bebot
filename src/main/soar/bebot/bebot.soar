@@ -1,24 +1,24 @@
 
-sp {list*elaborate*library-info
+sp {bebot*elaborate*library-info
   "Build initial library info on the top-state."
   (state <s> ^superstate nil)
 -->
-  (<s> ^list*library <l>)
+  (<s> ^bebot*library <l>)
   (<l> ^operators <ops>)
 }
 
-sp {list*elaborate*copy-library-info
+sp {bebot*elaborate*copy-library-info
   "Copy library info to sub-states."
-  (state <s> ^superstate.list*library <l>)
+  (state <s> ^superstate.bebot*library <l>)
 -->
-  (<s> ^list*library <l>)
+  (<s> ^bebot*library <l>)
 }
 
-sp {list*elaborate*operator*default-args
-  "When a list operator is active on the superstate, fill in default values
-   for any missing parameters using list*library info."
+sp {bebot*elaborate*operator*default-args
+  "When a bebot operator is active on the superstate, fill in default values
+   for any missing parameters using bebot*library info."
   (state <s> ^superstate.operator <o>
-             ^list*library.operators <ops>)
+             ^bebot*library.operators <ops>)
   (<ops> ^<name>.default.<arg> <value>)
   (<o> ^name <name>
       -^<arg>)
@@ -27,11 +27,11 @@ sp {list*elaborate*operator*default-args
   (<s> ^<arg> <value>)
 }
 
-sp {list*elaborate*operator*args
-  "When a list operator is active on the superstate, copy existing parameters
-   from the operator to the sub-state using list*library info."
+sp {bebot*elaborate*operator*args
+  "When a bebot operator is active on the superstate, copy existing parameters
+   from the operator to the sub-state using bebot*library info."
   (state <s> ^superstate.operator <o>
-             ^list*library.operators <ops>)
+             ^bebot*library.operators <ops>)
   (<ops> ^<name>.<< required default >>.<arg>)
   (<o> ^name <name>
        ^<arg> <value>)
@@ -40,8 +40,8 @@ sp {list*elaborate*operator*args
   (<s> ^<arg> <value>)
 }
 
-sp {list*common*elaborate*named-function*with*args
-  "For list operators that apply a function, if only an operator name is given,
+sp {bebot*common*elaborate*named-function*with*args
+  "For bebot operators that apply a function, if only an operator name is given,
    construct the function structure expected by those operators."
   (state <s> ^name << bebot*list*filter bebot*list*map bebot*list*fold-left >>
              ^func { <func-name> <=> string })
@@ -50,14 +50,14 @@ sp {list*common*elaborate*named-function*with*args
   (<f> ^name <func-name>)
 }
 
-sp {list*common*elaborate*copy*function*proposal*args
-  "For list operators that apply a function, copy any non-name arguments
+sp {bebot*common*elaborate*copy*function*proposal*args
+  "For bebot operators that apply a function, copy any non-name arguments
    from the function parameter (func) to the operator proposal. This allows
    for a very rudimentary form of currying."
   (state <s> ^func <func>
-             ^name <list-op-name>
+             ^name <bebot-op-name>
              ^operator <o>
-             ^list*library.operators.<list-op-name>)
+             ^bebot*library.operators.<bebot-op-name>)
   (<func> ^name <name>
           ^args.{<arg> <> name} <value>)
   (<o> ^name <name>)

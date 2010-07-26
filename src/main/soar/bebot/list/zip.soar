@@ -15,10 +15,10 @@
 #    ^second <value-from-second-list>
 
 sp {bebot*list*zip*elaborate*info
-  "Add info about this operator to the lib*library structure on the
+  "Add info about this operator to the bebot*library structure on the
    top state."
   (state <s> ^superstate nil
-             ^list*library.operators <ops>)
+             ^bebot*library.operators <ops>)
 -->
   (<ops> ^bebot*list*zip <args>)
   (<args> ^default <def> 

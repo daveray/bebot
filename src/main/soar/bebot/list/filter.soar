@@ -18,7 +18,7 @@ sp {bebot*list*filter*elaborate*info
   "Add info about this operator to the lib*library structure on the
    top state."
   (state <s> ^superstate nil
-             ^list*library.operators <ops>)
+             ^bebot*library.operators <ops>)
 -->
   (<ops> ^bebot*list*filter <args>)
   (<args> ^default <def> 
