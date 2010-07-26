@@ -66,4 +66,5 @@ sp {list*common*elaborate*copy*function*proposal*args
 }
 
 source functions.soar
+source bin.soar
 source list/list.soar

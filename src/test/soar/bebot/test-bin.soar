@@ -1,0 +1,63 @@
+setup {
+  source common.soar
+
+  sp {propose
+    (state <s> ^name test-bin
+               ^input <input>
+              -^result)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*bin
+         ^input <input>
+         ^return-to my-result)
+  }
+}
+
+test "ban bin an empty set" {
+
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-bin
+        ^input <in>)
+  }
+
+  sp {pass
+    (state <s> ^name test-bin
+              ^my-result <r>)
+    (<r> -^<foo>)
+  -->
+    (pass)
+  }
+
+}
+
+test "can bin a non-empty set" {
+
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-bin
+        ^input <in>)
+    (<in> ^foo 1 ^foo 2 ^foo yum ^bar 3.14 ^bar hello ^baz <baz>)
+    (<baz> ^value x)
+  }
+
+
+  sp {pass
+    (state <s> ^name test-bin
+              ^my-result <r>)
+    (<r> ^foo <foo> ^bar <bar> ^baz <baz>)
+    (<foo> ^size 3
+          ^{ <foo-0> < 3 >= 0 } 1
+          ^{ <foo-1> < 3 >= 0 }  2
+          ^{ <foo-2> < 3 >= 0 }  yum)
+    (<bar> ^size 2
+          ^{ <bar-0> < 2 >= 0 }  3.14
+          ^{ <bar-1> < 2 >= 0 }  hello)
+    (<baz> ^size 1
+          ^0)
+  -->
+    (pass)
+  }
+}

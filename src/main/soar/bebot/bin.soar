@@ -1,0 +1,98 @@
+
+sp {bebot*bin*elaborate*info
+  "Add info about this operator to the library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*bin <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result)
+  (<req> ^input nil)
+}
+
+
+# Pick a wme (propose indifferent)
+# if bin doesn't exist
+#   initialize bin
+#   initialize bin size to 0
+# add wme to bin
+# increment bin size
+# repeat
+# when no unprocessed wmes, create result
+
+
+sp {bebot*bin*propose*init
+  (state <s> ^name bebot*bin
+            -^result)
+-->
+  (<s> ^operator.name bebot*bin*init)
+}
+
+sp {bebot*bin*apply*init
+  (state <s> ^operator.name bebot*bin*init)
+-->
+  (<s> ^result <r>)
+}
+
+sp {bebot*bin*propose*process-wme
+  (state <s> ^name bebot*bin
+             ^input <in>
+             ^result <result>)
+  (<in> ^<attr> <value>)
+ -(<result> ^<attr>.{ <i> <=> 0 } <value>)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name bebot*bin*process-wme
+       ^attr <attr>
+       ^value <value>)
+}
+
+sp {bebot*bin*apply*process-wme*create-bin
+  (state <s> ^name bebot*bin
+             ^operator <o>
+             ^result <result>)
+  (<result> -^<attr>)
+  (<o> ^name bebot*bin*process-wme
+       ^attr <attr>)
+-->
+  (<result> ^<attr> <bin>)
+  (<bin> ^size 0)
+}
+
+sp {bebot*bin*apply*process-wme
+  (state <s> ^name bebot*bin
+             ^operator <o>
+             ^result.<attr> <bin>)
+  (<o> ^name bebot*bin*process-wme
+       ^attr <attr>
+       ^value <value>)
+  (<bin> ^size <size>)
+-->
+  (<bin> ^<size> <value>
+         ^size <size> - (+ <size> 1))
+}
+
+sp {bebot*bin*propose*return
+  (state <s> ^name bebot*bin
+             ^input <input>
+             ^result <result>)
+  -{
+     (<input> ^<attr> <value>)
+    -(<result> ^<attr>.{ <i> <=> 0 } <value>)
+  }
+-->
+  (<s> ^operator.name bebot*bin*return)
+}
+
+sp {bebot*bin*apply*return
+  (state <s> ^name bebot*bin
+             ^superstate <ss>
+             ^operator.name bebot*bin*return
+             ^result <result>
+             ^return-to <return-to>)
+-->
+  (<ss> ^<return-to> <result>)
+}
+
