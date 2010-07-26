@@ -1,0 +1,73 @@
+setup {
+  source ../common.soar
+
+  sp {apply*less-than-10-true
+    "Return true if less than 10"
+    (state <s> ^operator <o>)
+    (<o> ^name less-than-10
+        ^value <value> < 10)
+  -->
+    (<s> ^result true)
+    (write (crlf) <value> | is < 10|)
+  }
+  sp {apply*less-than-10-false
+    "Return true if less than 10"
+    (state <s> ^operator <o>)
+    (<o> ^name less-than-10
+        ^value <value> >= 10)
+  -->
+    (<s> ^result false)
+    (write (crlf) <value> | is >= 10|)
+  }
+
+  sp {test-list-filter*propose*filter
+    "Filter input list with less-than-10"
+    (state <s> ^name test-list-filter
+              -^result
+              ^input <input>)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*filter
+        ^func less-than-10
+        ^head <input>)
+  }
+}
+
+test filter-empty-result {
+
+  sp {test-list-filter*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-filter
+        ^input (list 11 11 11 23 56 70 10))
+  }
+
+  sp {pass
+    (state <s> ^name test-list-filter
+              ^result nil)
+  -->
+    (pass)
+  }
+}
+
+test filter-normal-result {
+
+  sp {test-list-filter*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-filter
+        ^input (list 3 6 10 9 100 40 3))
+  }
+
+  sp {pass
+    (state <s> ^name test-list-filter
+              ^result <result>)
+    (<result> ^value 3 ^next <n0>)
+    (<n0> ^value 6 ^next <n1>)
+    (<n1> ^value 9 ^next <n2>)
+    (<n2> ^value 3 ^next nil)
+  -->
+    (pass)
+  }
+
+}

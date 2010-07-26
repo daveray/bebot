@@ -1,0 +1,111 @@
+##!
+# Apply an operator to each value in a list constructing a new list
+# from the results:
+#
+# ^operator
+#   ^name bebot*list*map
+#   ^head <head-of-list>
+#   ^func <name-of-operator-to-apply>
+#   ^return-to <result-attribute>
+#
+# The operator to apply will be proposed like this:
+#
+# ^operator
+#   ^name  <name-of-operator-to-apply>
+#   ^value <list-value-to-process>
+#   ^index <current-list-index>
+
+sp {bebot*list*map*elaborate*info
+  "Add info about this operator to the lib*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*map <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result)
+  (<req> ^head nil
+         ^func nil)
+}
+
+sp {bebot*list*map*propose*init
+  (state <s> ^name bebot*list*map
+            -^current)
+-->
+  (<s> ^operator.name bebot*list*map-init)
+}
+
+sp {bebot*list*map*apply*init
+  (state <s> ^operator.name bebot*list*map-init
+             ^head <head>)
+-->
+  (<s> ^current <head>
+       ^builder <builder>
+       ^index 0)
+  (<builder> ^head nil
+             ^end nil)
+}
+
+sp {bebot*list*map*propose*func
+  "If we're not at the end of the list, propose the func operator on 
+   the current node's value. The operator will be applied..."
+  (state <s> ^name bebot*list*map
+             ^func.name <func>
+            -^result
+             ^current.value <value>
+             ^index <index>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name <func>
+       ^value <value>
+       ^index <index>)
+}
+
+sp {bebot*list*map*propose*process-func-result
+  "If the func operator has posted a result, propose adding the result
+   to the end of the result list"
+  (state <s> ^name bebot*list*map
+             ^current <> nil
+             ^result <result>
+             ^builder <builder>)
+  (<builder> ^end)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*builder*add
+       ^this <builder>
+       ^value <result>)
+}
+
+sp {bebot*list*map*apply*process-func-result*advance
+  "Advance the current pointer and index while processing 
+   most recent function result"
+  (state <s> ^operator.name bebot*list*builder*add
+             ^result <result>
+             ^current <current>
+             ^index <index>)
+  (<current> ^next <next>)
+-->
+  (<s> ^result <result> -
+       ^current <current> - <next>
+       ^index <index> - (+ <index> 1))
+}
+
+sp {bebot*list*map*propose*return
+  "If we've reached the end of the list, propose the return operator"
+  (state <s> ^name bebot*list*map
+             ^current nil)
+-->
+  (<s> ^operator.name bebot*list*map-return)
+}
+
+sp {bebot*list*map*apply*process-return
+  "Return the resulting list"
+  (state <s> ^operator.name bebot*list*map-return
+             ^superstate <ss>
+             ^builder.head <result-head>
+             ^return-to <return-to>)
+-->
+  (<ss> ^<return-to> <result-head>)
+}
+

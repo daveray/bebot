@@ -1,0 +1,73 @@
+setup {
+  source ../common.soar
+
+  sp {proposose*reverse
+    (state <s> ^name test-list-reverse
+               ^input <input>)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*reverse
+         ^head <input>)
+  }
+}
+
+test "the reverse of an empty list is an empty list" {
+
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-reverse
+         ^input nil)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-reverse
+               ^result nil)
+  -->
+    (pass)
+  }
+
+}
+
+test "the reverse of a one-element list is a one element list" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-reverse
+         ^input (list one))
+  }
+
+  sp {pass
+    (state <s> ^name test-list-reverse
+               ^result <r>)
+    (<r> ^value one 
+         ^next nil)
+  -->
+    (pass)
+  }
+}
+
+test "can reverse a many element list" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-reverse
+         ^input (list one two three four))
+  }
+
+  sp {pass
+    (state <s> ^name test-list-reverse
+               ^result <r0>)
+    (<r0> ^value four 
+          ^next <r1>)
+    (<r1> ^value three 
+          ^next <r2>)
+    (<r2> ^value two 
+          ^next <r3>)
+    (<r3> ^value one 
+          ^next nil)
+  -->
+    (pass)
+  }
+}
+

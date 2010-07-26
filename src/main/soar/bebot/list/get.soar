@@ -1,0 +1,66 @@
+##########################################################################
+# Operator bebot*list*get - get the kth value of a list
+#
+# ^operator
+#   ^name bebot*list*get
+#   ^head <head-of-list>
+#   ^index desired index
+#   ^return-to <name-of-result-attribute>
+
+sp {bebot*list*get*elaborate*info
+  "Add info about this operator to the lib*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*get <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result)
+  (<req> ^head nil
+         ^index nil)
+}
+
+sp {bebot*list*get*propose*advance
+  (state <s> ^name bebot*list*get
+             ^head <head>
+             ^index <index>
+            -^result)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*advance
+       ^count <index>
+       ^head <head>)
+}
+
+sp {bebot*list*get*propose*return
+  (state <s> ^name bebot*list*get
+             ^result)
+-->
+  (<s> ^operator.name bebot*list*get-return)
+}
+
+sp {bebot*list*get*elaborate*return-nil
+  (state <s> ^name bebot*list*get
+             ^result.head nil)
+-->
+  (<s> ^return nil)
+}
+
+sp {bebot*list*get*elaborate*return-non-nil
+  (state <s> ^name bebot*list*get
+             ^result.head.value <value>)
+-->
+  (<s> ^return <value>)
+}
+
+sp {bebot*list*get*apply*return
+  (state <s> ^name bebot*list*get
+             ^operator.name bebot*list*get-return
+             ^superstate <ss>
+             ^return <value> 
+             ^return-to <return-to>)
+-->
+  (<ss> ^<return-to> <value>)
+}
+

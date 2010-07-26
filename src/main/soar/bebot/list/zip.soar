@@ -1,0 +1,188 @@
+##########################################################################
+# Operator bebot*list*zip - zip two lists together
+#
+# ^operator
+#   ^name bebot*list*zip
+#   ^first <head-of-first-list>
+#   ^second <head-of-second-list>
+#   ^default <default-value-when-list-runs-out> (defaults to nil)
+#   ^return-to <name-of-result-attribute> (defaults to "result")
+#
+# The structure of the values of the result list looks like:
+#
+# ^value
+#    ^first  <value-from-first-list>
+#    ^second <value-from-second-list>
+
+sp {bebot*list*zip*elaborate*info
+  "Add info about this operator to the lib*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*zip <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result
+         ^default nil)
+  (<req> ^first nil
+         ^second nil)
+}
+
+sp {bebot*list*zip*propose*init
+  (state <s> ^name bebot*list*zip 
+            -^cfirst 
+            -^csecond)
+-->
+  (<s> ^operator.name bebot*list*zip-init)
+}
+
+sp {bebot*list*zip*apply*init
+  (state <s> ^name bebot*list*zip
+             ^operator.name bebot*list*zip-init
+             ^first <first>
+             ^second <second>)
+-->
+  (<s> ^cfirst <first>
+       ^csecond <second>
+       ^builder <builder>)
+  (<builder> ^head nil
+             ^end nil)
+}
+
+sp {bebot*list*zip*propose*return
+  (state <s> ^name bebot*list*zip 
+             ^cfirst nil
+             ^csecond nil)
+-->
+  (<s> ^operator.name bebot*list*zip-return)
+}
+
+###########################################################################
+
+sp {bebot*list*zip*propose*prepare-value-both
+  (state <s> ^name bebot*list*zip 
+            -^value
+             ^cfirst.value  <first-value>
+             ^csecond.value <second-value>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*zip*prepare-value
+       ^first <first-value>
+       ^second <second-value>)
+}
+
+sp {bebot*list*zip*propose*prepare-value-first-done
+  (state <s> ^name bebot*list*zip 
+            -^value
+             ^cfirst nil
+             ^csecond.value <second-value>
+             ^default <default>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*zip*prepare-value
+       ^first <default>
+       ^second <second-value>)
+}
+
+sp {bebot*list*zip*propose*prepare-value-second-done
+  (state <s> ^name bebot*list*zip 
+            -^value
+             ^cfirst.value <first-value>
+             ^csecond nil
+             ^default <default>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*zip*prepare-value
+       ^first <first-value>
+       ^second <default>)
+}
+
+sp {bebot*list*zip*apply*prepare-value
+  (state <s> ^name bebot*list*zip
+             ^operator <o>)
+  (<o> ^name bebot*list*zip*prepare-value
+       ^first <first>
+       ^second <second>)
+-->
+  (<s> ^value <value>)
+  (<value> ^first <first>
+           ^second <second>)
+}
+
+############################################################################
+
+sp {bebot*list*zip*propose*continue-both
+  (state <s> ^name bebot*list*zip 
+             ^value <value>
+             ^cfirst.next  <first-next>
+             ^csecond.next <second-next>
+             ^builder <builder>)
+  (<builder> ^end)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*builder*add
+       ^this <builder>
+       ^value <value>
+       ^first-next <first-next>
+       ^second-next <second-next>)
+}
+
+sp {bebot*list*zip*propose*continue-first-done
+  (state <s> ^name bebot*list*zip 
+             ^value <value>
+             ^cfirst nil
+             ^csecond.next <second-next>
+             ^builder <builder>)
+  (<builder> ^end)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*builder*add
+       ^this <builder>
+       ^value <value>
+       ^first-next nil
+       ^second-next <second-next>)
+}
+
+sp {bebot*list*zip*propose*continue-second-done
+  (state <s> ^name bebot*list*zip 
+             ^value <value>
+             ^cfirst.next <first-next>
+             ^csecond nil
+             ^builder <builder>
+             ^default <default>)
+  (<builder> ^end)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*builder*add
+       ^this <builder>
+       ^value <value>
+       ^first-next <first-next>
+       ^second-next nil)
+}
+
+sp {bebot*list*zip*apply*continue-advance
+  (state <s> ^name bebot*list*zip
+             ^value <value>
+             ^operator <o>
+             ^cfirst <cfirst>
+             ^csecond <csecond>)
+  (<o> ^name bebot*list*builder*add
+       ^first-next <fn>
+       ^second-next <sn>)
+-->
+  (<s> ^value <value> -
+       ^cfirst <cfirst> - <fn>
+       ^csecond <csecond> - <sn>)
+}
+
+sp {bebot*list*zip*apply*return
+  (state <s> ^name bebot*list*zip 
+             ^superstate <ss>
+             ^return-to <return-to>
+             ^operator.name bebot*list*zip-return
+             ^builder.head <result>)
+-->
+  (<ss> ^<return-to> <result>)
+}
+

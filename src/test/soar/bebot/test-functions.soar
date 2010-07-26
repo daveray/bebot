@@ -1,0 +1,47 @@
+setup {
+  source common.soar
+
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-functions)
+  }
+}
+
+test "Test identity operator copies value" {
+  sp {propose*identity
+    (state <s> ^name test-functions
+              -^result)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*identity
+         ^value 3.14159)
+  }
+
+  sp {pass
+    (state <s> ^name test-functions
+               ^result 3.14159)
+  -->
+    (pass)
+  }
+}
+
+test "Test multiply multiplies value by factor" {
+  sp {propose*identity
+    (state <s> ^name test-functions
+              -^result)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*multiply
+         ^value 99
+         ^factor 3)
+  }
+
+  sp {pass
+    (state <s> ^name test-functions
+               ^result 297)
+  -->
+    (pass)
+  }
+}
+

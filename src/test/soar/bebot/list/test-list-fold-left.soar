@@ -1,0 +1,69 @@
+setup {
+  source ../common.soar
+
+  sp {apply*add
+    "Multiply a value by 2"
+    (state <s> ^operator <o>)
+    (<o> ^name add
+        ^value <value>
+        ^previous <previous>)
+  -->
+    (<s> ^result (+ <previous> <value>))
+    (write (crlf) |Applying add: | <previous> | + | <value>)
+  }
+
+  sp {test-list-fold-left*propose*fold-left
+    "Map 'double' operator on the input list"
+    (state <s> ^name test-list-fold-left
+              -^result
+              ^input <input>)
+    (<input> ^head <head>
+            ^initial-value <initial-value>)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*fold-left
+        ^func add
+        ^head <head>
+        ^initial-value <initial-value>)
+  }
+
+}
+
+test fold-left-on-empty-list {
+  sp {test-list-fold-left*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-fold-left
+        ^input <input>)
+    (<input> ^head nil
+            ^initial-value 99)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-fold-left
+              ^result 99)
+  -->
+    (pass)
+  }
+}
+
+test fold-left-on-non-empty-list {
+  sp {test-list-fold-left*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-fold-left
+        ^input <input>
+        ^expected (+ 100 1 2 3 4 5 6))
+    (<input> ^head (list 1 2 3 4 5 6)
+            ^initial-value 100)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-fold-left
+              ^expected <expected>
+              ^result <expected>)
+  -->
+    (pass)
+  }
+}
+

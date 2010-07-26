@@ -1,0 +1,75 @@
+##########################################################################
+# Operator bebot*list*append - Append one list onto another without modifying
+# either list.
+#
+# Operator bebot*list*append-fast - Destructively append one list onto the end of 
+# another.
+#
+# Both operators have the same interface:
+#
+# ^operator
+#   ^name << bebot*list*append bebot*list*append-fast >>
+#   ^first <head-of-first-list>
+#   ^second <head-of-second-list>
+#   ^return-to <name-of-result-attribute> (defaults to "result")
+#
+# This file has functionality common between append and append-fast
+
+sp {bebot*list*append*elaborate*info
+  "Add info about this operator to the lib*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*append <args>
+         ^bebot*list*append-fast <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^first nil
+         ^second nil
+         ^return-to result)
+}
+
+sp {bebot*list*append*propose*return-nil
+  "If both lists are empty, just return nil"
+  (state <s> ^name << bebot*list*append bebot*list*append-fast >>
+             ^first nil
+             ^second nil)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*append*return
+       ^result nil)
+}
+
+sp {bebot*list*append*propose*return-first
+  "If the second list is empty, just return the first"
+  (state <s> ^name << bebot*list*append bebot*list*append-fast >>
+             ^first {<first> <> nil}
+             ^second nil)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*append*return
+       ^result <first>)
+}
+
+sp {bebot*list*append*propose*return-second
+  "If the first list is empty, just return the second"
+  (state <s> ^name << bebot*list*append bebot*list*append-fast >>
+             ^first nil
+             ^second {<second> <> nil})
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*append*return
+       ^result <second>)
+}
+
+sp {bebot*list*append*apply*return
+  (state <s> ^name << bebot*list*append bebot*list*append-fast >>
+             ^operator <o>
+             ^return-to <return-to>
+             ^superstate <ss>)
+  (<o> ^name bebot*list*append*return
+       ^result <result>)
+-->
+  (<ss> ^<return-to> <result>)
+}

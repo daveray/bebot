@@ -1,0 +1,72 @@
+setup {
+  source "../common.soar"
+}
+
+test list-range-with-no-start-argument {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test*bebot*list*range
+        ^end 4)
+  }
+
+  sp {pass
+    (state <s> ^name test*bebot*list*range
+              ^result <result>)
+    (<result> ^value 0 ^next <n0>)
+    (<n0> ^value 1 ^next <n1>)
+    (<n1> ^value 2 ^next <n2>)
+    (<n2> ^value 3 ^next <n3>)
+    (<n3> ^value 4 ^next nil)
+  -->
+    (pass)
+  }
+
+  sp {propose*bebot*list*range
+    (state <s> ^name test*bebot*list*range
+              ^end <end>
+              -^result)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*range
+        ^end <end>)
+  }
+}
+
+test list-range-with-start-and-end-arguments {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test*bebot*list*range
+        ^start 10
+        ^end 16
+        ^step 2)
+  }
+
+  sp {pass
+    (state <s> ^name test*bebot*list*range
+              ^result <result>)
+    (<result> ^value 10 ^next <n1>)
+    (<n1> ^value 12 ^next <n2>)
+    (<n2> ^value 14 ^next <n3>)
+    (<n3> ^value 16 ^next nil)
+  -->
+    (pass)
+  }
+
+  sp {propose*bebot*list*range
+    (state <s> ^name test*bebot*list*range
+              ^end <end>
+              ^start <start>
+              ^step <step>
+              -^result)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*range
+        ^end <end>
+        ^start <start>
+        ^end <end>
+        ^step <step>)
+  }
+}
+

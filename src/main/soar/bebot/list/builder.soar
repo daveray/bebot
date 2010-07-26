@@ -1,0 +1,58 @@
+##!
+# An operator for building up a new list. Propose the operator with
+# the appropriate "this" datastructure to add a new element to the
+# end of the list. The initial datastructure should look like this:
+#
+# ^this
+#    ^head nil
+#    ^end nil
+#
+# Call the operator like this:
+#
+# ^operator
+#    ^name bebot*list*builder*add
+#    ^this (see above)
+#    ^value (the value to be added)
+#
+# After application, the datastructure will look like this:
+#
+# ^this
+#   ^end  (points to just-added list node)
+#   ^head (point to head of new list)
+#
+# When proposing the operator, be sure to test ^end. Otherwise the
+# proposal won't retract.
+#
+# See map.soar for usage example.
+#
+sp {bebot*list*builder*apply*add*first
+  "Process the function's first result where we set up the head of
+   the new list we're constructing"
+  (state <s> ^operator <o>)
+  (<o> ^name bebot*list*builder*add
+       ^this <this>
+       ^value <value>)
+  (<this> ^head nil
+          ^end nil)
+-->
+  (<this> ^head nil - <new-result>
+          ^end nil - <new-result>)
+  (<new-result> ^value <value> 
+                ^next nil)
+}
+
+sp {bebot*list*builder*apply*add*rest
+  "Process subsequent function results after the head of the new list
+   has been started"
+  (state <s> ^operator <o>)
+  (<o> ^name bebot*list*builder*add
+       ^this <this>
+       ^value <value>)
+  (<this> ^end {<end> <> nil})
+-->
+  (<this> ^end <end> - <new-result>)
+  (<end> ^next nil - <new-result>)
+  (<new-result> ^value <value> 
+                ^next nil)
+}
+

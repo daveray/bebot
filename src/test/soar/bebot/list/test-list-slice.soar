@@ -1,0 +1,85 @@
+setup {
+  source "../common.soar"
+
+  sp {test-list-slice*propose*slice
+    (state <s> ^name test-list-slice
+              -^result
+              ^input <input>)
+  -->
+    (<s> ^operator.name bebot*list*slice)
+  }
+
+  sp {test-list-slice*elaborate*slice-params
+    (state <s> ^name test-list-slice
+              ^operator <o>
+              ^input.<attr> <value>)
+    (<o> ^name bebot*list*slice)
+  -->
+    (<o> ^<attr> <value>)
+  }
+}
+
+test list-slice-with-no-end-argument {
+  sp {test-list-slice*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-slice
+        ^input <input>)
+    (<input> ^head (list 2 4 6 8 10)
+            ^start 2)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-slice
+              ^result <result>)
+    (<result> ^value 6 ^next <n0>)
+    (<n0> ^value 8 ^next <n1>)
+    (<n1> ^value 10 ^next nil)
+  -->
+    (pass)
+  }
+}
+
+test list-slice-with-no-start-argument {
+  sp {test-list-slice*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-slice
+        ^input <input>)
+    (<input> ^head (list 2 4 6 8 10)
+            ^end 3)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-slice
+              ^result <result>)
+    (<result> ^value 2 ^next <n0>)
+    (<n0> ^value 4 ^next <n1>)
+    (<n1> ^value 6 ^next nil)
+  -->
+    (pass)
+  }
+}
+
+test list-slice-with-start-and-end-argument {
+
+  sp {test-list-slice*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-slice
+        ^input <input>)
+    (<input> ^head (list 2 4 6 8 10 11)
+            ^start 3
+            ^end 5)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-slice
+              ^result <result>)
+    (<result> ^value 8 ^next <n0>)
+    (<n0> ^value 10 ^next nil)
+  -->
+    (pass)
+  }
+}
+

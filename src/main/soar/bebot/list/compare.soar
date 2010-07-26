@@ -1,0 +1,110 @@
+##########################################################################
+# Operator bebot*list*compare - compare two lists
+#
+# ^operator
+#   ^name bebot*list*compare
+#   ^a <head-of-list-a>
+#   ^b <head-of-list-b>
+#   ^return-to <name-of-result-attribute> (defaults to "result")
+
+sp {bebot*list*compare*elaborate*info
+  "Add info about this operator to the lib*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*compare <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result)
+  (<req> ^a nil
+         ^b nil)
+}
+
+sp {bebot*list*compare*propose*init
+  (state <s> ^name bebot*list*compare 
+            -^ca 
+            -^cb)
+-->
+  (<s> ^operator.name bebot*list*compare-init)
+}
+
+sp {bebot*list*compare*apply*init
+  (state <s> ^name bebot*list*compare
+             ^operator.name bebot*list*compare-init
+             ^a <a>
+             ^b <b>)
+-->
+  (<s> ^ca <a>
+       ^cb <b>)
+}
+
+sp {bebot*list*compare*propose*values*return-false
+  (state <s> ^name bebot*list*compare 
+             ^ca <ca>
+             ^cb <cb>)
+  (<ca> ^value <va>)
+  (<cb> ^value <> <va>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*compare-return ^result false)
+}
+
+sp {bebot*list*compare*propose*end-of-b*return-false
+  (state <s> ^name bebot*list*compare 
+             ^ca.next
+             ^cb nil)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*compare-return ^result false)
+}
+
+sp {bebot*list*compare*propose*end-of-a*return-false
+  (state <s> ^name bebot*list*compare 
+             ^ca nil
+             ^cb.next)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*compare-return ^result false)
+}
+
+sp {bebot*list*compare*propose*return-true
+  (state <s> ^name bebot*list*compare 
+             ^ca nil
+             ^cb nil)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*compare-return ^result true)
+}
+
+sp {bebot*list*compare*propose*continue
+  (state <s> ^name bebot*list*compare 
+             ^ca.value <value>
+             ^cb.value <value>)
+-->
+  (<s> ^operator.name bebot*list*compare-continue)
+}
+
+sp {bebot*list*compare*apply*continue
+  (state <s> ^name bebot*list*compare
+             ^operator.name bebot*list*compare-continue
+             ^ca <ca>
+             ^cb <cb>)
+  (<ca> ^next <an>)
+  (<cb> ^next <bn>)
+-->
+  (<s> ^ca <ca> - <an>
+       ^cb <cb> - <bn>)
+}
+
+sp {bebot*list*compare*apply*return
+  (state <s> ^name bebot*list*compare 
+             ^superstate <ss>
+             ^return-to <return-to>
+             ^operator <o>)
+  (<o> ^name bebot*list*compare-return 
+       ^result <result>)
+-->
+  (<ss> ^<return-to> <result>)
+}
+

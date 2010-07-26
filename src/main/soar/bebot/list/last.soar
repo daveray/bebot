@@ -1,0 +1,84 @@
+##########################################################################
+# Operator bebot*list*last - get the last value of a list
+#
+# ^operator
+#   ^name bebot*list*last
+#   ^head <head-of-list>
+#   ^return-to <name-of-result-attribute> (defaults to "result")
+
+sp {bebot*list*last*elaborate*info
+  "Add info about this operator to the lib*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*last <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result)
+  (<req> ^head nil)
+}
+
+sp {bebot*list*last*propose*return-nil-for-empty-list
+  (state <s> ^name bebot*list*last 
+            -^head.next)
+-->
+  (<s> ^operator.name bebot*list*last*return-nil)
+}
+
+sp {bebot*list*last*apply*return-nil-for-empty-list
+  (state <s> ^operator.name bebot*list*last*return-nil 
+             ^superstate <ss>
+             ^return-to <return-to>
+            -^head.next)
+-->
+  (<ss> ^<return-to> nil)
+}
+
+sp {bebot*list*last*propose*init
+  (state <s> ^name bebot*list*last 
+             ^head.next
+            -^current)
+-->
+  (<s> ^operator.name bebot*list*last-init)
+}
+
+sp {bebot*list*last*apply*init
+  (state <s> ^name bebot*list*last
+             ^operator.name bebot*list*last-init
+             ^head <head>)
+-->
+  (<s> ^current <head>
+       ^previous nil)
+}
+
+sp {bebot*list*last*propose*process
+  (state <s> ^name bebot*list*last 
+             ^current)
+-->
+  (<s> ^operator.name bebot*list*last-process)
+}
+
+sp {bebot*list*last*apply*process-continue
+  (state <s> ^name bebot*list*last
+             ^operator.name bebot*list*last-process
+             ^current <current>
+             ^previous <previous>)
+  (<current> ^next <next>)
+-->
+  (<s> ^current <current> - <next>)
+  (<s> ^previous <previous> - <current>)
+}
+
+sp {bebot*list*last*apply*process-return
+  (state <s> ^name bebot*list*last 
+             ^superstate <ss>
+             ^return-to <return-to>
+             ^operator.name bebot*list*last-process
+             ^current nil
+             ^previous <previous>)
+  (<previous> ^value <value>)
+-->
+  (<ss> ^<return-to> <value>)
+}
+

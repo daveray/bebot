@@ -1,0 +1,66 @@
+##########################################################################
+# Operator bebot*list*size - get the size of a list
+#
+# ^operator
+#   ^name bebot*list*last
+#   ^head <head-of-list> (nil for empty list)
+#   ^return-to <name-of-result-attribute>
+
+sp {bebot*list*size*elaborate*info
+  "Add info about this operator to the lib*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*size <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result)
+  (<req> ^head nil)
+}
+
+sp {bebot*list*size*propose*init
+  (state <s> ^name bebot*list*size 
+            -^current)
+-->
+  (<s> ^operator.name bebot*list*size-init)
+}
+
+sp {bebot*list*size*apply*init
+  (state <s> ^name bebot*list*size
+             ^operator.name bebot*list*size-init
+             ^head <head>)
+-->
+  (<s> ^current <head> 
+       ^count 0)
+}
+
+sp {bebot*list*size*propose*process
+  (state <s> ^name bebot*list*size 
+             ^current)
+-->
+  (<s> ^operator.name bebot*list*size-process)
+}
+
+sp {bebot*list*size*apply*process
+  (state <s> ^name bebot*list*size
+             ^operator.name bebot*list*size-process
+             ^current <current>
+             ^count <count>)
+  (<current> ^next <next>)
+-->
+  (<s> ^current <current> - <next>
+       ^count <count> - (+ <count> 1))
+}
+
+sp {bebot*list*size*apply*process-return
+  (state <s> ^name bebot*list*size 
+             ^operator.name bebot*list*size-process
+             ^superstate <ss>
+             ^return-to <return-to>
+             ^current nil
+             ^count <count>)
+-->
+  (<ss> ^<return-to> <count>)
+}
+          

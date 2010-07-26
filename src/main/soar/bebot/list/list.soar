@@ -1,0 +1,18 @@
+
+source builder.soar
+source advance.soar
+source get.soar
+source size.soar
+source last.soar
+source compare.soar
+source reverse.soar
+source map.soar
+source fold-left.soar
+source range.soar
+source filter.soar
+source slice.soar
+source append-common.soar
+source append.soar
+source append-fast.soar
+source zip.soar
+

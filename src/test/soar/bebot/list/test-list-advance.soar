@@ -1,0 +1,83 @@
+setup {
+  source ../common.soar
+
+  sp {apply*init*add-state-name
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-advance)
+  }
+
+  sp {propose
+    (state <s> ^name test-list-advance
+               ^head <head>
+               ^count <count>
+              -^result)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*advance
+         ^head <head>
+         ^count <count>)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-advance
+               ^expected-head <head>
+               ^expected-total <total>
+               ^result <result>)
+    (<result> ^head <head>
+              ^total <total>)
+  -->
+    (pass)
+  }
+}
+
+test "advancing on an empty list returns nil with total 0" {
+  sp {apply*init
+    (state <s> ^name test-list-advance)
+  -->
+    (<s> ^head nil
+         ^count 5
+         ^expected-head nil
+         ^expected-total 0)
+  }
+}
+
+test "advancing by zero returns the original head with total 0" {
+  sp {apply*init
+    (state <s> ^name test-list-advance)
+  -->
+    (<s> ^head <head>
+         ^count 0
+         ^expected-head <head>
+         ^expected-total 0)
+    (<head> ^next nil ^value 99)
+  }
+}
+
+test "advancing past end of list returns nil" {
+  sp {apply*init
+    (state <s> ^name test-list-advance)
+  -->
+    (<s> ^head (list 1 2 3)
+         ^count 5
+         ^expected-head nil
+         ^expected-total 3)
+  }
+}
+
+test "can advance within a list" {
+  sp {apply*init
+    (state <s> ^name test-list-advance)
+  -->
+    (<s> ^head <h0>
+         ^count 2
+         ^expected-head <h2>
+         ^expected-total 2)
+    (<h0> ^value first ^next <h1>)
+    (<h1> ^value second ^next <h2>)
+    (<h2> ^value third ^next <h3>)
+    (<h3> ^value fourth ^next <h4>)
+    (<h4> ^value fifth ^next nil)
+  }
+}
+

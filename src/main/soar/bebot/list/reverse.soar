@@ -1,0 +1,67 @@
+##########################################################################
+# Operator bebot*list*reverse - reverse a list
+#
+# ^operator
+#   ^name list*last
+#   ^head <head-of-list>
+#   ^return-to <name-of-result-attribute> (defaults to "result")
+
+sp {bebot*list*reverse*elaborate*info
+  "Add info about this operator to the lib*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*reverse <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result)
+  (<req> ^head nil)
+}
+
+sp {bebot*list*reverse*propose*init
+  (state <s> ^name bebot*list*reverse 
+            -^current)
+-->
+  (<s> ^operator.name bebot*list*reverse-init)
+}
+
+sp {bebot*list*reverse*apply*init
+  (state <s> ^name bebot*list*reverse
+             ^operator.name bebot*list*reverse-init
+             ^head <head>)
+-->
+  (<s> ^current <head>
+       ^new-head nil)
+}
+
+sp {bebot*list*reverse*propose*process
+  (state <s> ^name bebot*list*reverse 
+             ^current)
+-->
+  (<s> ^operator.name bebot*list*reverse-process)
+}
+
+sp {bebot*list*reverse*apply*process
+  (state <s> ^name bebot*list*reverse
+             ^operator.name bebot*list*reverse-process
+             ^current <current>
+             ^new-head <nh>)
+  (<current> ^next <next> 
+             ^value <value>)
+-->
+  (<s> ^current <current> - <next>
+       ^new-head <nh> - <nh2>)
+  (<nh2> ^next <nh> ^value <value>)
+}
+
+sp {bebot*list*reverse*apply*process-return
+  (state <s> ^name bebot*list*reverse
+             ^operator.name bebot*list*reverse-process
+             ^superstate <ss>
+             ^return-to <return-to>
+             ^current nil
+             ^new-head <nh>)
+-->
+  (<ss> ^<return-to> <nh>)
+}

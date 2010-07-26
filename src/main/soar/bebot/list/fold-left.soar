@@ -1,0 +1,114 @@
+##!
+# Apply an operator to each value in a list constructing a new list
+# from the results:
+#
+# ^operator
+#   ^name          bebot*list*fold-left
+#   ^head          <head-of-list>
+#   ^func          <name-of-operator-to-apply>
+#   ^initial-value <initial-value>
+#   ^return-to     <result-attribute>
+#
+# The operator to apply will be proposed like this:
+#
+# ^operator
+#   ^name     <name-of-operator-to-apply>
+#   ^value    <list-value-to-process>
+#   ^previous <previous-result>
+
+sp {bebot*list*fold-left*elaborate*info
+  "Add info about this operator to the lib*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*fold-left <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result)
+  (<req> ^head *required*
+         ^func *required*
+         ^initial-value *required*)
+}
+
+sp {bebot*list*fold-left*propose*init
+  (state <s> ^name bebot*list*fold-left
+            -^current)
+-->
+  (<s> ^operator.name bebot*list*fold-left-init)
+}
+
+sp {bebot*list*fold-left*apply*init
+  (state <s> ^name bebot*list*fold-left
+             ^operator.name bebot*list*fold-left-init
+             ^head <head>
+             ^initial-value <initial-value>)
+-->
+  (<s> ^current <head>
+       ^previous <initial-value>)
+}
+
+sp {bebot*list*fold-left*propose*func
+  "If we're not at the end of the list, propose the func operator on 
+   the current node's value. The operator will be applied..."
+  (state <s> ^name bebot*list*fold-left
+             ^func.name <func>
+             ^previous <previous>
+            -^result
+             ^current.value <value>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name <func>
+       ^value <value>
+       ^previous <previous>)
+}
+
+sp {bebot*list*fold-left*propose*process-func-result
+  "If the func operator has posted a result, propose processing the
+   result"
+  (state <s> ^name bebot*list*fold-left
+             ^result)
+-->
+  (<s> ^operator.name bebot*list*fold-left*process-func-result)
+}
+
+sp {bebot*list*fold-left*apply*process-func-result
+  "Process the result, storing it in ^previous for the next iteration."
+  (state <s> ^name bebot*list*fold-left
+             ^operator.name bebot*list*fold-left*process-func-result
+             ^result <result>
+             ^previous <previous>)
+-->
+  (<s> ^result <result> -
+       ^previous <previous> - <result>)
+}
+
+sp {bebot*list*fold-left*apply*process-func-result*advance
+  "Advance the current pointer in the list"
+  (state <s> ^name bebot*list*fold-left
+             ^operator.name bebot*list*fold-left*process-func-result
+             ^current <current>)
+  (<current> ^next <next>)
+-->
+  (<s> ^current <current> - <next>)
+}
+
+sp {bebot*list*fold-left*propose*return
+  "If we've reached the end of the list, propose the return operator"
+  (state <s> ^name bebot*list*fold-left
+             ^current nil)
+-->
+  (<s> ^operator.name bebot*list*fold-left-return)
+}
+
+sp {bebot*list*fold-left*apply*process-return
+  "Return the result"
+  (state <s> ^name bebot*list*fold-left
+             ^operator.name bebot*list*fold-left-return
+             ^superstate <ss>
+             ^previous <previous>
+             ^return-to <return-to>)
+-->
+  (<ss> ^<return-to> <previous>)
+}
+

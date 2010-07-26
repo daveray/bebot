@@ -1,0 +1,120 @@
+##!
+# Construct a list by filtering values accepted by an operator:
+#
+# ^operator
+#   ^name bebot*list*filter
+#   ^head <head-of-list>
+#   ^func <name-of-operator-to-apply>
+#   ^return-to <result-attribute>
+#
+# The filter operator to apply will be proposed like this:
+#
+# ^operator
+#   ^name  <name-of-operator-to-apply>
+#   ^value <list-value-to-process>
+#   ^index <current-list-index>
+
+sp {bebot*list*filter*elaborate*info
+  "Add info about this operator to the lib*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*filter <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result)
+  (<req> ^head nil
+         ^func nil)
+}
+
+sp {bebot*list*filter*propose*init
+  (state <s> ^name bebot*list*filter
+            -^current)
+-->
+  (<s> ^operator.name bebot*list*filter-init)
+}
+
+sp {bebot*list*filter*apply*init
+  (state <s> ^name bebot*list*filter
+             ^operator.name bebot*list*filter-init
+             ^head <head>)
+-->
+  (<s> ^current <head>
+       ^index 0
+       ^builder <builder>)
+  (<builder> ^head nil
+             ^end nil)
+}
+
+sp {bebot*list*filter*propose*func
+  "If we're not at the end of the list, propose the func operator on 
+   the current node's value. The operator will be applied..."
+  (state <s> ^name bebot*list*filter
+             ^func.name <func>
+            -^result
+             ^current.value <value>
+             ^index <index>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name <func>
+       ^value <value>
+       ^index <index>)
+}
+
+sp {bebot*list*filter*propose*add-to-result
+  "If the func operator returned true, propose adding the value to the result 
+   list"
+  (state <s> ^name bebot*list*filter
+             ^result true
+             ^current.value <value>
+             ^builder <builder>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*builder*add
+       ^this <builder>
+       ^value <value>)
+}
+
+sp {bebot*list*filter*propose*ignore
+  "If the func returned true, don't add it to the result list"
+  (state <s> ^name bebot*list*filter
+             ^result false)
+-->
+  (<s> ^operator.name bebot*list*filter*ignore)
+}
+
+sp {bebot*list*filter*apply**advance
+  "Advance the current pointer in the list while processing 
+   most recent function result"
+  (state <s> ^name bebot*list*filter
+             ^operator.name << bebot*list*builder*add bebot*list*filter*ignore >>
+             ^result <result>
+             ^current <current>
+             ^index <index>)
+  (<current> ^next <next>)
+-->
+  (<s> ^result <result> -
+       ^current <current> - <next>
+       ^index <index> - (+ <index> 1))
+}
+
+sp {bebot*list*filter*propose*return
+  "If we've reached the end of the list, propose the return operator"
+  (state <s> ^name bebot*list*filter
+             ^current nil)
+-->
+  (<s> ^operator.name bebot*list*filter-return)
+}
+
+sp {bebot*list*filter*apply*process-return
+  "Return the resulting list"
+  (state <s> ^name bebot*list*filter
+             ^operator.name bebot*list*filter-return
+             ^superstate <ss>
+             ^builder.head <result-head>
+             ^return-to <return-to>)
+-->
+  (<ss> ^<return-to> <result-head>)
+}
+

@@ -1,0 +1,90 @@
+##!
+#
+# ^operator
+#   ^name bebot*list*range
+#   ^start <start-value>
+#   ^end   <end-value>
+#   ^step  <step-value>
+
+sp {bebot*list*range*elaborate*info
+  "Add info about this operator to the list*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*range <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result
+          ^start 0
+          ^step 1)
+  (<req> ^end nil)
+}
+
+sp {bebot*list*range*propose*init
+  (state <s> ^name bebot*list*range
+            -^value)
+-->
+  (<s> ^operator.name bebot*list*range-init)
+}
+
+sp {bebot*list*range*apply*init
+  "Set up the initial state for the operator, including the initial builder
+   for constructing the result list"
+  (state <s> ^name bebot*list*range
+             ^operator.name bebot*list*range-init
+             ^start <start>
+             ^end <end>
+             ^step <step>)
+-->
+  (<s> ^value <start>
+       ^builder <builder>)
+  (<builder> ^head nil
+             ^end nil)
+}
+
+sp {bebot*list*range*propose*advance
+  "If we're not past the end of the range, propose adding another 
+   value to the result list"
+  (state <s> ^name bebot*list*range
+             ^end <end>
+             ^value { <value> <= <end> }
+             ^builder <builder>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*builder*add
+       ^this <builder>
+       ^value <value>)
+}
+
+sp {bebot*list*range*apply*advance
+  "While adding to the result list, calculate next value using current value
+   and step"
+  (state <s> ^name bebot*list*range
+             ^operator.name bebot*list*builder*add
+             ^value <old-value>
+             ^step <step>)
+-->
+  (<s> ^value <old-value> - (+ <old-value> <step>))
+}
+
+sp {bebot*list*range*propose*return
+  "If we're at the end of the range, propose return"
+  (state <s> ^name bebot*list*range
+             ^end <end>
+             ^value > <end>)
+-->
+  (<s> ^operator.name bebot*list*range-return)
+}
+
+sp {bebot*list*range*apply*return
+  "Put result list on the parent state"
+  (state <s> ^name bebot*list*range
+             ^operator.name bebot*list*range-return
+             ^superstate <ss>
+             ^return-to <return-to>
+             ^builder.head <result-head>)
+-->
+  (<ss> ^<return-to> <result-head>)
+}
+

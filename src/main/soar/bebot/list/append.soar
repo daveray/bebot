@@ -1,0 +1,40 @@
+# See append-common.soar
+
+sp {bebot*list*append*propose*copy-first
+  "Copy the first list by applying identity map"
+  (state <s> ^name bebot*list*append 
+             ^first {<first> <> nil}
+             ^second <> nil
+            -^copy-of-first)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*map
+       ^func bebot*identity
+       ^head <first>
+       ^return-to copy-of-first)
+}
+
+sp {bebot*list*append*propose*append-fast
+  "Now that the first list is copied, delegate to append-fast to destructively
+   append the second to the copy of the first"
+  (state <s> ^name bebot*list*append
+             ^copy-of-first <first>
+             ^second <second>
+            -^result <result>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*append-fast
+       ^first <first>
+       ^second <second>)
+}
+
+sp {bebot*list*append*propose*return
+  "When append-fast has completed, return the new list."
+  (state <s> ^name bebot*list*append
+             ^result <result>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*append*return
+       ^result <result>)
+}
+

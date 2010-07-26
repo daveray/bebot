@@ -1,0 +1,104 @@
+setup {
+  source "../common.soar"
+
+  sp {test*list*append*propose*list*append
+    (state <s> ^name test-list-append
+              ^first <first>
+              ^second <second>
+              -^result)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*append
+        ^first <first>
+        ^second <second>)
+  }
+}
+
+test both-empty {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-append
+        ^first  nil
+        ^second nil)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-append
+              ^result nil)
+  -->
+    (pass)
+  }
+
+}
+
+test first-empty {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-append
+        ^first  nil
+        ^second (list a b c d))
+  }
+
+  sp {pass
+    (state <s> ^name test-list-append
+              ^result <result>)
+    (<result> ^value a ^next <n0>)
+    (<n0> ^value b ^next <n1>)
+    (<n1> ^value c ^next <n2>)
+    (<n2> ^value d ^next nil)
+  -->
+    (pass)
+  }
+
+}
+
+test neither-empty {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-append
+        ^first (list d e f)
+        ^second (list a b c))
+  }
+
+  sp {pass
+    (state <s> ^name test-list-append
+              ^result <result>)
+    (<result> ^value d ^next <n0>)
+    (<n0> ^value e ^next <n1>)
+    (<n1> ^value f ^next <n2>)
+    (<n2> ^value a ^next <n3>)
+    (<n3> ^value b ^next <n4>)
+    (<n4> ^value c ^next nil)
+  -->
+    (pass)
+  }
+
+}
+
+test second-empty {
+
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-append
+        ^first (list a b c d)
+        ^second nil)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-append
+              ^result <result>)
+    (<result> ^value a ^next <n0>)
+    (<n0> ^value b ^next <n1>)
+    (<n1> ^value c ^next <n2>)
+    (<n2> ^value d ^next nil)
+  -->
+    (pass)
+  }
+
+}
+
+

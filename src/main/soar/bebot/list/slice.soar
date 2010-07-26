@@ -1,0 +1,86 @@
+##########################################################################
+# Operator bebot*list*slice - take a slice of a list based on an integer range
+#
+# ^operator
+#   ^name bebot*list*slice
+#   ^head <head-of-list>
+#   ^start <start-index>, defaults to 0
+#   ^end   <end-index>, defaults to end of list
+#   ^return-to <name-of-result-attribute>
+#
+# This implementation uses bebot*list*filter to just filter by index rather than
+# reimplementing all of the list traversal stuff again.
+
+sp {bebot*list*slice*elaborate*info
+  "Add info about this operator to the list*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*slice <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result
+         ^start 0
+         ^end   2147483647)
+  (<req> ^head nil)
+}
+
+sp {bebot*list*slice*apply*filter*func-true
+  "If the current index is inside of [start, end) return true"
+  (state <s> ^superstate <ss> 
+             ^operator <o>)
+  (<ss> ^name bebot*list*slice
+        ^start <start>
+        ^end   <end>)
+  (<o> ^name bebot*list*slice-filter 
+       ^index { <index> >= <start> < <end> })
+-->
+  (<s> ^result true)
+}
+
+sp {bebot*list*slice*apply*filter*func-false
+  "If the current index is outside of [start, end) return false"
+  (state <s> ^superstate <ss> 
+             ^operator <o>)
+  (<ss> ^name bebot*list*slice
+        ^start <start>
+        ^end   <end>)
+  (<o> ^name bebot*list*slice-filter)
+ -{ # OR
+   -{ (<o> ^index { <index> < <start> }) }
+   -{ (<o> ^index { <index> >= <end> }) }
+  }
+-->
+  (<s> ^result false)
+}
+
+sp {bebot*list*slice*propose*filter
+  "If bebot*list*slice is proposed and there's no result, propose list*filter
+   to filter the list based on index"
+  (state <s> ^name bebot*list*slice
+            -^result
+             ^head <head>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*filter
+       ^head <head>
+       ^func bebot*list*slice-filter)
+}
+
+sp {bebot*list*slice*propose*return
+  (state <s> ^name bebot*list*slice
+             ^result)
+-->
+  (<s> ^operator.name bebot*list*slice-return)
+}
+
+sp {bebot*list*slice*apply*return
+  (state <s> ^name bebot*list*slice
+             ^operator.name bebot*list*slice-return
+             ^result <result>
+             ^superstate <ss>
+             ^return-to <return-to>)
+-->
+  (<ss> ^<return-to> <result>)
+}

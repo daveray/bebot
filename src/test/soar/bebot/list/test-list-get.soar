@@ -1,0 +1,69 @@
+setup {
+  source ../common.soar
+
+  sp {apply*init*add-state-name
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-get)
+  }
+
+  sp {propose*bebot*list*get
+    (state <s> ^name test-list-get
+               ^head <head>
+               ^index <index>
+              -^result)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*get
+         ^head <head>
+         ^index <index>)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-get
+               ^result <result>
+               ^expected-result <result>)
+  -->
+    (pass)
+  }
+}
+
+test "can get value at some index" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^head (list 9 8 7 6 5)
+         ^index 3
+         ^expected-result 6)
+  }
+}
+
+test "can get value at first index" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^head (list 9 8 7 6 5)
+         ^index 0
+         ^expected-result 9)
+  }
+}
+
+test "can get value at last index" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^head (list 9 8 7 6 5)
+         ^index 4
+         ^expected-result 5)
+  }
+}
+
+test "returns nil for out of range index" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^head (list 9 8 7 6 5)
+         ^index 44
+         ^expected-result nil)
+  }
+}

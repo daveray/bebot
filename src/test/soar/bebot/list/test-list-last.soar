@@ -1,0 +1,55 @@
+setup {
+  source ../common.soar
+
+  sp {apply*init*add-state-name
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-last)
+  }
+
+  sp {propose
+    (state <s> ^name test-list-last
+              -^result
+               ^input <input>)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*last
+         ^head <input>)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-last
+               ^result <result>
+               ^expected-result <result>)
+  -->
+    (pass)
+  }
+}
+
+test "returns nil for an empty list" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^input nil
+         ^expected-result nil)
+  }
+}
+
+test "can return the last value of a one-element list" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^input (list one)
+         ^expected-result one)
+  }
+}
+
+test "returns the last value of a non-empty list" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^input (list one two three four five)
+         ^expected-result five)
+  }
+}
+

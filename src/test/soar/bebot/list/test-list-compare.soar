@@ -1,0 +1,64 @@
+setup {
+
+  source "../common.soar"
+
+  sp {propose*bebot*list*compare
+    (state <s> ^name test-list-compare
+              ^a <a>
+              ^b <b>
+              -^test-result)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*compare 
+        ^a <a>
+        ^b <b>
+        ^return-to test-result)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-compare
+              ^expected-result <expected>
+              ^test-result <expected>)
+  -->
+    (pass)
+  }
+}
+
+test compare-equal-lists {
+
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-compare
+        ^a (list 1 this is a list of many values)
+        ^b (list 1 this is a list of many values)
+        ^expected-result true)
+  }
+
+}
+
+test compare-unequal-lists-of-equal-length {
+
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-compare
+        ^a (list 1 this is a list of many values)
+        ^b (list 1 this is another list of many values)
+        ^expected-result false)
+  }
+
+}
+
+test compare-empty-lists {
+
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-compare
+        ^a nil
+        ^b nil
+        ^expected-result true)
+  }
+
+}

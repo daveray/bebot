@@ -1,0 +1,108 @@
+setup {
+  source "../common.soar"
+
+  sp {test-list-zip*propose*zip
+    (state <s> ^name test-list-zip
+              ^input <input>)
+    (<input> ^first <first>
+            ^second <second>)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*zip
+        ^first <first>
+        ^second <second>)
+  }
+}
+
+test zip-where-both-lists-are-empty {
+  sp {test-list-zip*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-zip
+        ^input <input>)
+    (<input> ^first nil
+            ^second nil)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-zip
+              ^result nil)
+  -->
+    (pass)
+  }
+}
+
+test zip-where-both-lists-are-same-length {
+  sp {test-list-zip*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-zip
+        ^input <input>)
+    (<input> ^first (list 5 4 3 2)
+            ^second (list five four three two))
+  }
+
+  sp {pass
+    (state <s> ^name test-list-zip
+              ^result <result>)
+    (<result> ^value (^first 5 ^second five) 
+      ^next (^value (^first 4 ^second four)
+        ^next (^value (^first 3 ^second three)
+          ^next (^value (^first 2 ^second two)
+            ^next nil))))
+  -->
+    (pass)
+  }
+}
+
+test zip-where-first-list-is-longer {
+
+  sp {test-list-zip*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-zip
+        ^input <input>)
+    (<input> ^first (list 5 4 3 2)
+            ^second (list five four))
+  }
+
+  sp {pass
+    (state <s> ^name test-list-zip
+              ^result <result>)
+    (<result> ^value (^first 5 ^second five) 
+      ^next (^value (^first 4 ^second four)
+        ^next (^value (^first 3 ^second nil)
+          ^next (^value (^first 2 ^second nil)
+            ^next nil))))
+  -->
+    (pass)
+  }
+
+}
+
+test zip-where-second-list-is-longer {
+
+  sp {test-list-zip*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-zip
+        ^input <input>)
+    (<input> ^first (list 5)
+            ^second (list five four three two))
+  }
+
+  sp {pass
+    (state <s> ^name test-list-zip
+              ^result <result>)
+    (<result> ^value (^first 5 ^second five) 
+      ^next (^value (^first nil ^second four)
+        ^next (^value (^first nil ^second three)
+          ^next (^value (^first nil ^second two)
+            ^next nil))))
+  -->
+    (pass)
+  }
+
+}
+
+

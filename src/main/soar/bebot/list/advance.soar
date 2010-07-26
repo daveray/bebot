@@ -1,0 +1,92 @@
+##!
+# Advance along a list a given number of places and return a list node.
+#
+# ^operator
+#    ^name bebot*list*advance
+#    ^head <head-of-list>
+#    ^count <number-of-nodes-to-advance> (defaults to 1)
+#
+# Returns the new list node (head) as well as the actual number of nodes
+# advanced. This will be less than count if count is larger than the list.
+# 
+# ^result
+#    ^head  <new-list-head>
+#    ^total <actual-number-of-nodes-advanced>
+
+sp {bebot*list*advance*elaborate*info
+  "Add info about this operator to the list*library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^list*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*advance <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result
+         ^count 1)
+  (<req> ^head nil)
+}
+
+sp {bebot*list*advance*propose*init
+  (state <s> ^name bebot*list*advance 
+            -^current)
+-->
+  (<s> ^operator.name bebot*list*advance-init)
+}
+
+sp {bebot*list*advance*apply*init
+  (state <s> ^name bebot*list*advance
+             ^operator.name bebot*list*advance-init
+             ^head <head>)
+-->
+  (<s> ^current <head> 
+       ^total 0)
+}
+
+sp {bebot*list*advance*propose*process
+  (state <s> ^name bebot*list*advance 
+             ^current)
+-->
+  (<s> ^operator.name bebot*list*advance-process)
+}
+
+sp {bebot*list*advance*apply*process
+  (state <s> ^name bebot*list*advance
+             ^operator.name bebot*list*advance-process
+             ^count <count>
+             ^total { <total> <> <count> }
+             ^current <current>)
+  (<current> ^next <next>)
+-->
+  (<s> ^current <current> - <next>
+       ^total <total> - (+ <total> 1))
+}
+
+sp {bebot*list*advance*apply*process-return
+  (state <s> ^name bebot*list*advance 
+             ^operator.name bebot*list*advance-process
+             ^superstate <ss>
+             ^count <total>
+             ^total <total>
+             ^return-to <return-to>
+             ^current <current>)
+-->
+  (<ss> ^<return-to> <result>)
+  (<result> ^head <current>
+            ^total <total>)
+}
+
+sp {bebot*list*advance*apply*process-return-end-of-list
+  (state <s> ^name bebot*list*advance 
+             ^operator.name bebot*list*advance-process
+             ^superstate <ss>
+             ^total <total>
+             ^count <> <total>
+             ^return-to <return-to>
+             ^current nil)
+-->
+  (<ss> ^<return-to> <result>)
+  (<result> ^head nil
+            ^total <total>)
+}
+

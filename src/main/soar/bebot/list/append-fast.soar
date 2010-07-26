@@ -1,0 +1,63 @@
+# See append-common.soar
+
+sp {bebot*list*append-fast*propose*init
+  (state <s> ^name bebot*list*append-fast 
+             ^first <> nil
+             ^second <> nil
+            -^current)
+-->
+  (<s> ^operator.name bebot*list*append-fast-init)
+}
+
+sp {bebot*list*append-fast*apply*init
+  (state <s> ^name bebot*list*append-fast
+             ^operator.name bebot*list*append-fast-init
+             ^first <first>)
+-->
+  (<s> ^current <first>)
+}
+
+sp {bebot*list*append-fast*propose*process
+  "If we're not at the last node, propose advancing the current pointer"
+  (state <s> ^name bebot*list*append-fast 
+             ^current.next <> nil)
+-->
+  (<s> ^operator.name bebot*list*append-fast-process)
+}
+
+sp {bebot*list*append-fast*apply*process-continue
+  "Advance the current pointer"
+  (state <s> ^name bebot*list*append-fast
+             ^operator.name bebot*list*append-fast-process
+             ^current <current>)
+  (<current> ^next <next>)
+-->
+  (<s> ^current <current> - <next>)
+}
+
+sp {bebot*list*append-fast*propose*splice-and-return
+  "If we're at the last node, propose doing the splice operation and returning"
+  (state <s> ^name bebot*list*append-fast
+             ^current.next nil)
+-->
+  (<s> ^operator.name bebot*list*append-fast-splice-and-return)
+}
+
+sp {bebot*list*append-fast*apply*splice
+  "Splice the end of first to second and set the return value in the 
+   superstate. By modifying the list, GDS will eliminate the current
+   state, which is why we both splice and return here."
+  (state <s> ^name bebot*list*append-fast
+             ^operator.name bebot*list*append-fast-splice-and-return
+             ^return-to <return-to>
+             ^superstate <ss>
+             ^current <current>
+             ^first <first>
+             ^second <second>)
+  (<current> ^next <next>)
+-->
+  (<current> ^next <next> - <second>)
+  (<ss> ^<return-to> <first>)
+}
+
+

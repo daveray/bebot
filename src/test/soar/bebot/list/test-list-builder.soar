@@ -1,0 +1,75 @@
+setup {
+  source ../common.soar
+
+  sp {apply*init*add-state-name
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-builder)
+  }
+
+  sp {propose
+    (state <s> ^name test-list-builder
+               ^builder <builder>
+               ^value <value>)
+    (<builder> ^end)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*builder*add
+         ^this <builder>
+         ^value <value>)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-builder
+               ^builder <builder>
+               ^expected-head-value <expected-head-value>
+               ^expected-end-value  <expected-end-value>)
+    (<builder> ^head.value <expected-head-value>
+               ^end <end>)
+    (<end> ^value <expected-end-value> ^next nil)
+  -->
+    (pass)
+  }
+}
+
+test "can add a new element to an empty builder" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^builder <builder>
+         ^value 87
+         ^expected-head-value 87
+         ^expected-end-value 87)
+    (<builder> ^head nil ^end nil)
+  }
+}
+
+test "can add a new element to a builder with one element" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^builder <builder>
+         ^value 88
+         ^expected-head-value 86
+         ^expected-end-value 88)
+    (<builder> ^head <head> ^end <head>)
+    (<head> ^next nil ^value 86)
+  }
+}
+
+test "can add a new element to a builder with several elements" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^builder <builder>
+         ^value 91
+         ^expected-head-value 86
+         ^expected-end-value 91)
+    (<builder> ^head <head> ^end <end>)
+    (<head> ^next <h1> ^value 86)
+    (<h1> ^next <h2> ^value 87)
+    (<h2> ^next <h3> ^value 88)
+    (<h3> ^next <end> ^value 89)
+    (<end> ^next nil ^value 90)
+  }
+}

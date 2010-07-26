@@ -1,0 +1,22 @@
+##!
+# Common "functions"
+
+sp {bebot*identity*apply
+  "Identity operator"
+  (state <s> ^operator <o>)
+  (<o> ^name bebot*identity
+       ^value <value>)
+-->
+  (<s> ^result <value>)
+}
+       
+sp {bebot*multiply*apply
+  "Multiplication operator"
+  (state <s> ^operator <o>)
+  (<o> ^name bebot*multiply
+       ^factor <factor>
+       ^value <value>)
+-->
+  (<s> ^result (* <factor> <value>))
+}
+       

@@ -1,0 +1,53 @@
+setup {
+  source ../common.soar
+
+  sp {proposose*list*size
+    (state <s> ^name test-list-size
+               ^input <input>)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*size
+         ^head <input>
+         ^return-to returned-size)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-size
+               ^expected-size <expected>
+               ^returned-size <expected>)
+  -->
+    (pass)
+  }
+}
+
+test "the size of an empty list is zero" {
+
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-size
+         ^input nil
+         ^expected-size 0)
+  }
+
+}
+
+test "the size of a one-element list is one" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-size
+         ^input (list one) 
+         ^expected-size 1)
+  }
+}
+
+test "can get the size of a many element list" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-size
+         ^input (list one two three four five six seven eight) 
+         ^expected-size 8)
+  }
+}

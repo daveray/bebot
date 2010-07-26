@@ -1,0 +1,66 @@
+setup {
+  source ../common.soar
+
+  sp {apply*double
+    "Multiply a value by 2"
+    (state <s> ^operator <o>)
+    (<o> ^name double
+        ^value <value>
+        ^index <index>)
+  -->
+    (<s> ^result (* <value> 2))
+    (write (crlf) |Applying double to | <value> | at index | <index>)
+  }
+
+  sp {test-list-map*propose*map
+    "Map 'double' operator on the input list"
+    (state <s> ^name test-list-map
+              -^result
+              ^input <input>)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*map
+        ^func <f>
+        ^head <input>)
+    (<f> ^name bebot*multiply
+        ^args.factor 2)
+  }
+}
+
+test map-on-empty-list {
+  sp {test-list-map*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-map
+        ^input nil)
+  }
+
+  sp {pass
+    (state <s> ^name test-list-map
+              ^result nil)
+  -->
+    (pass)
+  }
+}
+
+test map-on-non-empty-list {
+  sp {test-list-map*apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-map
+        ^input (list 1 2 3 4 5))
+  }
+
+  sp {pass
+    (state <s> ^name test-list-map
+              ^result <result>)
+    (<result> ^value 2 ^next <n0>)
+    (<n0> ^value 4 ^next <n1>)
+    (<n1> ^value 6 ^next <n2>)
+    (<n2> ^value 8 ^next <n3>)
+    (<n3> ^value 10 ^next nil)
+  -->
+    (pass)
+  }
+}
+
