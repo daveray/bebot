@@ -37,6 +37,30 @@ test compare-equal-lists {
 
 }
 
+test "When list a is shorter, returns false" {
+
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-compare
+        ^a (list 1 this is a)
+        ^b (list 1 this is a list of many values)
+        ^expected-result false)
+  }
+}
+
+test "When list b is shorter, returns false" {
+
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-list-compare
+        ^a (list 1 this is a list of many values)
+        ^b (list 1 this is a)
+        ^expected-result false)
+  }
+}
+
 test compare-unequal-lists-of-equal-length {
 
   sp {apply*init

@@ -1,17 +1,6 @@
 setup {
   source ../common.soar
 
-  sp {apply*double
-    "Multiply a value by 2"
-    (state <s> ^operator <o>)
-    (<o> ^name double
-        ^value <value>
-        ^index <index>)
-  -->
-    (<s> ^result (* <value> 2))
-    (write (crlf) |Applying double to | <value> | at index | <index>)
-  }
-
   sp {test-list-map*propose*map
     "Map 'double' operator on the input list"
     (state <s> ^name test-list-map
