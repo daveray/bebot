@@ -1,0 +1,80 @@
+setup {
+  source ../common.soar
+
+  sp {apply*init*add-state-name
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-flatten)
+  }
+
+  sp {propose
+    (state <s> ^name test-flatten
+              -^result
+               ^head <input>)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*list*flatten
+         ^head <input>)
+  }
+}
+
+test "can flatten a list that's already flat" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^head (list a b c d e))
+  }
+
+  sp {pass
+    (state <s> ^name test-flatten
+               ^result <result>)
+    (<result> ^value a ^next <r1>)
+    (<r1>     ^value b ^next <r2>)
+    (<r2>     ^value c ^next <r3>)
+    (<r3>     ^value d ^next <r4>)
+    (<r4>     ^value e ^next nil)
+  -->
+    (pass)
+  }
+}
+
+test "can flatten an empty list" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^head nil)
+  }
+
+  sp {pass
+    (state <s> ^name test-flatten
+               ^result nil)
+  -->
+    (pass)
+  }
+}
+
+
+test "can recursively flatten a list" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^head 
+      (list a
+        (list b
+          (list c d)
+          e)))
+  }
+
+  sp {pass
+    (state <s> ^name test-flatten
+               ^result <result>)
+    (<result> ^value a ^next <r1>)
+    (<r1>     ^value b ^next <r2>)
+    (<r2>     ^value c ^next <r3>)
+    (<r3>     ^value d ^next <r4>)
+    (<r4>     ^value e ^next nil)
+  -->
+    (pass)
+  }
+}
+

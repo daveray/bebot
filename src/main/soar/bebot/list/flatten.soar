@@ -1,0 +1,125 @@
+
+sp {bebot*list*flatten*elaborate*info
+  "Add info about this operator to the lib*library structure on the
+  top state."
+  (state <s> ^superstate nil
+            ^bebot*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*flatten <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result)
+  (<req> ^head nil)
+}
+
+sp {bebot*list*flatten-helper*elaborate*info
+  "Add info about this operator to the lib*library structure on the
+  top state."
+  (state <s> ^superstate nil
+            ^bebot*library.operators <ops>)
+-->
+  (<ops> ^bebot*list*flatten-helper <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result)
+  (<req> ^value nil
+          ^previous nil)
+}
+
+sp {bebot*list*flatten*propose*init
+  (state <s> ^name bebot*list*flatten
+            -^builder)
+-->
+  (<s> ^operator.name bebot*list*flatten*init)
+}
+
+sp {bebot*list*flatten*apply*init
+  (state <s> ^operator.name bebot*list*flatten*init)
+-->
+  (<s> ^builder <builder>)
+  (<builder> ^head nil
+             ^end nil)
+}
+
+sp {bebot*list*flatten*propose*return
+  (state <s> ^name bebot*list*flatten
+              ^result)
+-->
+  (<s> ^operator.name bebot*list*flatten*return)
+}
+
+sp {bebot*list*flatten*apply*return
+  (state <s> ^operator.name bebot*list*flatten*return
+              ^result <builder>
+              ^return-to <return-to>
+              ^superstate <ss>)
+  (<builder> ^head <result>)
+-->
+  (<ss> ^<return-to> <result>)
+}
+
+sp {bebot*list*flatten*propose*fold-left
+  (state <s> ^name bebot*list*flatten
+              ^builder <builder>
+            -^result
+              ^head <input>)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*fold-left
+        ^head <input>
+        ^func bebot*list*flatten-helper
+        ^initial-value <builder>)
+}
+
+sp {bebot*list*flatten-helper*propose*add
+  (state <s> ^name bebot*list*flatten-helper
+            -^result
+              ^previous <builder>
+              ^value <value>)
+  (<value> -^next)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*builder*add
+       ^this <builder>
+       ^value <value>)
+}
+
+sp {bebot*list*flatten-helper*apply*add*set-result
+  (state <s> ^name bebot*list*flatten-helper
+             ^operator <o>)
+  (<o> ^name bebot*list*builder*add
+        ^this <builder>)
+-->
+  (<s> ^result <builder>)
+}
+
+sp {bebot*list*flatten-helper*propose*recurse
+  (state <s> ^name bebot*list*flatten-helper
+             ^value <value>
+             ^previous <builder>
+            -^result)
+  (<value> ^next)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name bebot*list*fold-left
+       ^head <value>
+       ^func bebot*list*flatten-helper
+       ^initial-value <builder>)
+}
+
+sp {bebot*list*flatten*propose*recurse*return
+  (state <s> ^name bebot*list*flatten-helper
+              ^result)
+--> 
+  (<s> ^operator.name bebot*list*flatten-helper-return)
+}
+
+sp {bebot*list*flatten*apply*recurse*return
+  (state <s> ^name bebot*list*flatten-helper
+             ^operator.name bebot*list*flatten-helper-return
+             ^result <result>
+             ^superstate <ss>)
+-->
+  (<ss> ^result <result>)
+}
+
