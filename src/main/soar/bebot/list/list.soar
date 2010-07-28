@@ -15,4 +15,5 @@ source append-common.soar
 source append.soar
 source append-fast.soar
 source zip.soar
+source flatten.soar
 
