@@ -1,1 +1,15 @@
-A bunch of reusable "functions" implemented in Soar.
+A bunch of reusable "functions" implemented as Soar operators. Most functions operator on linked lists of the form:
+
+^value a
+^next
+    ^value b
+    ^next
+        ^value c
+        ^next nil
+
+The usual functional list operations like map, fold-left, filter are implemented.
+
+Everything is thoroughly tested with SoarUnit (http://code.google.com/p/jsoar/wiki/SoarUnit). To run the tests, get a recent version of the JSoar distribution (after 7/29/2010) and run SoarUnit like this:
+
+$ soarunit --ui -R /path/to/bebot
+
