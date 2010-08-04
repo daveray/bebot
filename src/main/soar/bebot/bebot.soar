@@ -67,4 +67,6 @@ sp {bebot*common*elaborate*copy*function*proposal*args
 
 source functions.soar
 source bin.soar
+source do.soar
 source list/list.soar
+

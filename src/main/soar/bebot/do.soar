@@ -1,0 +1,119 @@
+##!
+# @operator bebot*do
+#
+# Operator bebot*do. Apply an operator a given number of times.
+#
+# ^operator
+#   ^name bebot*do
+#   ^func <operator name or struct>
+#   ^times <number of times to execute>
+#   ^return-to <result-attribute>
+#
+# The result is the last index processed, typically ^times, or the index
+# where break was called. The func operator is proposed like this:
+#
+# ^operator
+#   ^name <name of operator>
+#   ^index <current index>
+#   ^return-to <result-attribute> (always "result")
+#
+# The result can be either "continue" or "break". If "continue", iteration will
+# continue until ^times is reached. Otherwise, it "break", the bebot*do operator
+# exits immediately.
+
+sp {bebot*do*elaborate*info
+  "Add info about this operator to the library structure on the
+   top state."
+  (state <s> ^superstate nil
+             ^bebot*library.operators <ops>)
+-->
+  (<ops> ^bebot*do <args>)
+  (<args> ^default <def> 
+          ^required <req>)
+  (<def> ^return-to result)
+  (<req> ^times nil
+         ^func nil)
+}
+
+sp {bebot*do*propose*init
+  (state <s> ^name bebot*do
+            -^index)
+-->
+  (<s> ^operator.name bebot*do*init)
+}
+
+sp {bebot*do*apply*init
+  (state <s> ^operator.name bebot*do*init)
+-->
+  (<s> ^index 0)
+}
+
+sp {bebot*do*propose*func
+  (state <s> ^name bebot*do
+             ^times <times>
+             ^index { <index> < <times> }
+             ^func <func>
+            -^break
+            -^result)
+-->
+  (<s> ^operator <o>)
+  (<o> ^name <func>
+       ^index <index>
+       ^return-to result)
+}
+
+sp {bebot*do*propose*handle-func-result
+  (state <s> ^name bebot*do
+             ^result <result>)
+-->
+  (<s> ^operator.name bebot*do*handle-func-result)
+}
+
+sp {bebot*do*apply*handle-func-result*remove-result
+  (state <s> ^operator.name bebot*do*handle-func-result
+             ^result <result>)
+-->
+  (<s> ^result <result> -)
+}
+
+sp {bebot*do*apply*handle-func-result*contine
+  (state <s> ^operator.name bebot*do*handle-func-result
+             ^result continue
+             ^index <index>)
+-->
+  (<s> ^index <index> - 
+       ^index (+ <index> 1))
+}
+
+sp {bebot*do*apply*handle-func-result*break
+  (state <s> ^operator.name bebot*do*handle-func-result
+             ^result break
+             ^index <index>)
+-->
+  (<s> ^break true)
+}
+
+sp {bebot*do*propose*return*after-break
+  (state <s> ^name bebot*do
+             ^break)
+-->
+  (<s> ^operator.name bebot*do*return)
+}
+
+sp {bebot*do*propose*return*done
+  (state <s> ^name bebot*do
+             ^times <times>
+             ^index >= <times>)
+-->
+  (<s> ^operator.name bebot*do*return)
+}
+
+sp {bebot*do*apply*return
+  (state <s> ^operator.name bebot*do*return
+             ^superstate <ss>
+             ^index <index>
+             ^return-to <return-to>)
+-->
+  (<ss> ^<return-to> <index>)
+}
+

@@ -1,0 +1,95 @@
+
+setup {
+  source common.soar
+
+  sp {apply*init*add-state-name
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^name test-do)
+  }
+
+  sp {apply*do-func
+    (state <s> ^operator <o>)
+    (state <top-state> ^superstate nil)
+    (<o> ^name do-func
+         ^index { <index> < 10 }
+         ^return-to <return-to>)
+  -->
+    (<s> ^<return-to> continue)
+    (<top-state> ^did <index>)
+  }
+
+  sp {apply*do-func*break-at-10
+    (state <s> ^operator <o>)
+    (state <top-state> ^superstate nil)
+    (<o> ^name do-func
+         ^index 10
+         ^return-to <return-to>)
+  -->
+    (<s> ^<return-to> break)
+    (<top-state> ^did 10)
+  }
+
+  sp {propose*do
+    (state <s> ^name test-do
+               ^times <times>
+              -^do-result)
+  -->
+    (<s> ^operator <o>)
+    (<o> ^name bebot*do
+         ^times <times>
+         ^func do-func
+         ^return-to do-result)
+  }
+}
+
+test "can repeat an action several times" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^times 8)
+  }
+
+  sp {pass
+    (state <s> ^name test-do
+     ^did 0 1 2 3 4 5 6 7
+     ^do-result 8)
+   -(state <other> ^name bebot*do)
+  -->
+    (pass)
+  }
+}
+
+test "can repeat an action zero times" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^times 0)
+  }
+
+  sp {pass
+    (state <s> ^name test-do
+     -^did
+     ^do-result 0)
+   -(state <other> ^name bebot*do)
+  -->
+    (pass)
+  }
+}
+
+test "can break if function returns 'break'" {
+  sp {apply*init
+    (state <s> ^operator.name init)
+  -->
+    (<s> ^times 20)
+  }
+
+  sp {pass
+    (state <s> ^name test-do
+     ^did 0 1 2 3 4 5 6 7 8 9 10
+     ^do-result 10)
+   -(state <other> ^name bebot*do)
+  -->
+    (pass)
+  }
+}
