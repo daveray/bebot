@@ -1,0 +1,318 @@
+# perform a while loop over items that match an smem query
+# ^name loop
+# ^query: defines set to iterate over
+#         if tcnum-attr is given, current tcnum value will be added to the query (so the query will be modified)
+# ^init: optional operator that initializes the context in whatever way the user desires
+#        it must create a "^result" structure when it is finished (this will get passed into the function as "^previous")
+#        by default, just creates a "^result" identifier with no substructure
+# ^test: optional operator that performs a test to determine if should continue
+#        it must create either "^passed-test true" or "^passed-test false"
+#        by default, the test always passes (so this will loop over all matching items)
+# ^func: required operator that performs work on current item
+#        parameters:
+#            ^value <val> : the currently retrieved value/object
+#            ^previous <p> : the result from the init operator or the previous function operator
+#        it should not modify the query
+#        if it modifies the object and tcnum-attr is specified, the changes will be saved
+#        it must create a "^result" structure when it is finished (this may just be the previous structure passed through)
+# ^return: optional operator that returns the result
+#          it must cause the original while-loop operator proposal to retract
+#          it will be called under one of these conditions:
+#          * when there are no more items that match a query
+#          * when the test operator creates "^passed-test false"
+#          by default, it returns the last "result" structure created by the init or function operators to the superstate as "^result"
+# ^tcnum-attr: optional name of attribute to use as a tcnum
+
+smem --set learning on
+
+sp {while-loop*setup*required-args
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name while-loop
+        ^query <q>
+        ^func <func>)
+-->
+   (<s> ^name while-loop
+        ^query <q>
+        ^func <func>)
+}
+
+sp {while-loop*setup*init-specified
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name while-loop
+        ^init <init>)
+-->
+   (<s> ^init <init>)
+}
+
+sp {while-loop*setup*init-default
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name while-loop
+       -^init <init>)
+-->
+   (<s> ^init while-loop*default*init)
+}
+
+sp {while-loop*setup*test-specified
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name while-loop
+        ^test <test>)
+-->
+   (<s> ^test <test>)
+}
+
+sp {while-loop*setup*test-default
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name while-loop
+       -^test <test>)
+-->
+   (<s> ^test while-loop*default*test)
+}
+
+sp {while-loop*setup*return-specified
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name while-loop
+        ^return <return>)
+-->
+   (<s> ^return <return>)
+}
+
+sp {while-loop*setup*return-default
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name while-loop
+       -^return <return>)
+-->
+   (<s> ^return while-loop*default*return)
+}
+
+sp {while-loop*setup*use-tcnum
+   (state <s> ^superstate.operator.tcnum-attr <attr>)
+-->
+   (<s> ^use-tcnum true
+        ^tcnum-attr <attr>)
+}
+
+sp {while-loop*setup*dont-use-tcnum
+   (state <s> ^superstate.operator <o>)
+  -(<o> ^tcnum-attr)
+-->
+   (<s> ^use-tcnum false)
+}
+
+sp {while-loop*propose*init
+   (state <s> ^name while-loop
+              ^init <init>
+             -^previous)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name <init>
+        ^initial-context <ic>)
+}
+
+sp {while-loop*apply*default*init
+   (state <s> ^operator <o>)
+   (<o> ^name while-loop*default*init
+        ^initial-context <ic>)
+-->
+   (<s> ^result <ic>)
+}
+
+sp {while-loop*apply*default*init*convert-result-to-previous
+   (state <s> ^init <init>
+              ^operator.name <init>
+              ^result <r>
+             -^previous)
+-->
+   (<s> ^result <r> -
+        ^previous <r>)
+}
+
+sp {while-loop*propose*create-query
+   (state <s> ^name while-loop
+              ^previous
+             -^query-created true)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name create-query)
+}
+
+sp {while-loop*apply*create-query*dont-use-tcnum
+   (state <s> ^operator.name create-query
+              ^smem.command <c>
+              ^query <query>
+              ^use-tcnum false)
+-->
+   (<c> ^query <query>)
+   (<s> ^query-created true)
+}
+
+sp {while-loop*apply*create-query*use-tcnum
+   (state <s> ^operator.name create-query
+              ^smem.command <c>
+              ^query <query>
+              ^use-tcnum true)
+-->
+   (<c> ^query <query>)
+}
+
+sp {while-loop*apply*create-query*add-tcnum
+   (state <s> ^operator.name create-query
+              ^smem <smem>)
+   (<smem> ^result.retrieved <object>
+           ^command.query <q>)
+   (<object> ^tcnum <num>)
+-->
+   (<q> ^tcnum <num>)
+   (<s> ^query-created true)
+   (<s> ^query <q>) # save this so we can reuse it later
+}
+
+sp {while-loop*apply*create-query*add-tcnum*failed-retrieval
+   (state <s> ^operator.name create-query
+              ^smem <smem>)
+   (<smem> ^result.failure)
+-->
+   (<s> ^query-created true)
+}
+
+sp {while-loop*propose*test
+   (state <s> ^name while-loop
+              ^test <test>
+              ^query-created true
+              ^smem.result.retrieved
+              ^previous <p>
+             -^passed-test) # could be true or false
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name <test>
+        ^previous <p>)
+}
+
+sp {while-loop*apply*default*test
+   (state <s> ^operator.name while-loop*default*test)
+-->
+   (<s> ^passed-test true)
+}
+
+sp {while-loop*propose*return*no-more-items
+   (state <s> ^name while-loop
+              ^query-created true
+              ^smem.result.failure
+              ^previous <p>
+              ^return <ret>)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name <ret>
+        ^result <p>)
+}
+
+sp {while-loop*propose*return*test-failed
+   (state <s> ^name while-loop
+              ^passed-test false
+              ^previous <p>
+              ^return <ret>)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name <ret>
+        ^result <p>)
+}
+
+sp {while-loop*apply*default*return
+   (state <s> ^operator <o>
+              ^superstate <ss>)
+   (<o> ^name while-loop*default*return
+        ^result <r>)
+-->
+   (<ss> ^result <r>)
+}
+
+sp {while-loop*propose*function
+   (state <s> ^name while-loop
+              ^smem.result.retrieved <object>
+              ^func <func>
+              ^passed-test true
+              ^previous <p>
+             -^result)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name <func>
+        ^object <object>
+        ^previous <p>)
+}
+
+sp {while-loop*propose*store-updated-value
+   (state <s> ^name while-loop
+              ^result
+              ^previous
+              ^use-tcnum true
+             -^stored-updated-value true)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name store-updated-value)
+}
+
+sp {while-loop*apply*store-updated-value
+   (state <s> ^operator.name store-updated-value
+              ^tcnum-attr <attr>
+              ^smem <smem>)
+   (<smem> ^result.retrieved <object>
+           ^command <c>)
+   (<object> ^<attr> <value>)
+   (<c> ^query <q>)
+-->
+   (<c> ^query <q> -
+        ^store <object>)
+   (<object> ^<attr> <value> - (+ 1 <value>))
+   (<s> ^stored-updated-value true)
+}
+
+sp {while-loop*use-tcnum*propose*reset-loop
+   (state <s> ^name while-loop
+              ^use-tcnum true
+              ^stored-updated-value true)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name reset-loop)   
+}
+         
+sp {while-loop*no-tcnum*propose*reset-loop
+   (state <s> ^name while-loop
+              ^use-tcnum false
+              ^result
+              ^previous)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name reset-loop)   
+}
+
+sp {while-loop*no-tcnum*apply*reset-loop
+   (state <s> ^operator.name reset-loop
+              ^smem <smem>
+              ^result <r>
+              ^previous <p>
+              ^passed-test true)
+   (<smem> ^command <c>
+           ^result.retrieved <object>)
+-->
+   (<c> ^prohibit <object>)
+   (<s> ^passed-test true -
+        ^result <r> -
+        ^previous <p> - <r>)
+}
+
+sp {while-loop*tcnum*apply*reset-loop
+   (state <s> ^operator.name reset-loop
+              ^smem.command <c>
+              ^result <r>
+              ^previous <p>
+              ^passed-test true
+              ^stored-updated-value true
+              ^query <q>)
+   (<c> ^store <store>)
+-->
+   (<c> ^store <store> -
+        ^query <q>)
+   (<s> ^passed-test true -
+        ^stored-updated-value true -
+        ^result <r> -
+        ^previous <p> - <r>)
+}

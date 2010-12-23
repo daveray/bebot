@@ -1,0 +1,127 @@
+# return the 3rd value found
+# this exercises the "test" operator
+
+setup {
+    source ../common.soar
+   
+    # bebot common proposes this
+    sp {apply*init*add-state-name
+        (state <s> ^operator.name init)
+    -->
+        (<s> ^name test-smem-loop)
+    }
+    
+    sp {apply*init-count
+       (state <s> ^operator <o>)
+       (<o> ^name init-count
+            ^initial-context <ic>)
+    -->
+       (<s> ^result <ic>)
+       (<ic> ^count 0)
+    }
+    
+    sp {apply*test*count*passed
+       (state <s> ^operator <o>)
+       (<o> ^name count-test
+            ^previous <p>)
+       (<p> ^count <c> < 3)
+    -->
+       (<p> ^count <c> - (+ 1 <c>))
+       (<s> ^passed-test true)
+    }
+    
+    sp {apply*test*count*failed
+       (state <s> ^operator <o>)
+       (<o> ^name count-test
+            ^previous.count >= 3)
+    -->
+       (<s> ^passed-test false)
+    }
+    
+    sp {apply*func*get-value*first
+       (state <s> ^operator <o>)
+       (<o> ^name get-value
+            ^object.value <newval>
+            ^previous <p>)
+      -(<p> ^value)
+    -->
+       (<s> ^result <p>)
+       (<p> ^value <newval>)
+    }
+    
+    sp {apply*func*get-value
+       (state <s> ^operator <o>)
+       (<o> ^name get-value
+            ^object.value <newval>
+            ^previous <p>)
+       (<p> ^value <oldval>)
+    -->
+       (<s> ^result <p>)
+       (<p> ^value <oldval> - <newval>)
+    }
+}
+
+test without-tcnum {
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 7 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+       (<o5> ^value 0 ^tcnum 0)
+    }
+    
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^init init-count
+            ^test count-test
+            ^func get-value)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <val>)
+       (<val> ^value 7)
+      -(<val> ^value {<> 7})
+    -->
+       (pass)
+    }
+}
+
+test with-tcnum {
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 7 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+       (<o5> ^value 0 ^tcnum 0)
+    }
+    
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^init init-count
+            ^test count-test
+            ^func get-value
+            ^tcnum-attr tcnum)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <val>)
+       (<val> ^value 7)
+      -(<val> ^value {<> 7})
+    -->
+       (pass)
+    }
+}

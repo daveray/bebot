@@ -1,0 +1,499 @@
+# find the two minimum values
+# use defaults as much as possible
+
+setup {
+    source ../common.soar
+
+    # put the number of dcs on the input-link
+    script javascript {
+        new Packages.org.jsoar.kernel.io.CycleCountInput(soar.agent.getInputOutput());
+    }
+
+    # bebot common proposes this
+    sp {apply*init*add-state-name
+        (state <s> ^operator.name init)
+    -->
+        (<s> ^name test-smem-loop)
+    }
+  
+    sp {apply*func-two-min-vals*first
+       (state <s> ^operator <o>)
+       (<o> ^name func-two-min-vals
+            ^object.value <newval>
+            ^previous <p>)
+      -(<p> ^value)
+    -->
+       (<s> ^result <p>)
+       (<p> ^value <newval>)
+    }
+
+    sp {apply*func-two-min-vals*second
+       (state <s> ^operator <o>)
+       (<o> ^name func-two-min-vals
+            ^object.value <newval>
+            ^previous <p>)
+       (<p> ^value <v1>
+           -^value <> <v1>)
+    -->
+       (<s> ^result <p>)
+       (<p> ^value <newval>)
+    }
+
+    sp {apply*func-two-min-vals*too-large
+       (state <s> ^operator <o>)
+       (<o> ^name func-two-min-vals
+            ^object.value > <v2>
+            ^previous <p>)
+       (<p> ^value <v1>
+            ^value {<v2> > <v1>})
+    -->
+       (<s> ^result <p>)
+    }
+
+    sp {apply*func-two-min-vals*replace-value
+       (state <s> ^operator <o>)
+       (<o> ^name func-two-min-vals
+            ^object.value {<newval> < <v2>}
+            ^previous <p>)
+       (<p> ^value <v1>
+            ^value {<v2> > <v1>})
+    -->
+       (<s> ^result <p>)
+       (<p> ^value <v2> - <newval>)
+    }
+
+    ##### monitor rules for debugging #####
+
+    sp {value-found*2-values
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value <v1> {<v2> <> <v1> > <v1>}) # test for > <v1> is just to ensure a single match
+    -->
+       (write (crlf) |Min values: | <v1> | | <v2>)
+    }
+
+    sp {value-found*1-value
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value <v1>)
+      -(<vals> ^value <> <v1>)
+    -->
+       (write (crlf) |Set only had one value: | <v1>)
+    }
+
+    sp {value-found*0-values
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+      -(<vals> ^value)
+    -->
+       (write (crlf) |Set is empty|)
+    }
+}
+
+test simple-set {
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 7 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+    }
+
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value 1 3)
+      -(<vals> ^value {<> 1 <> 3})
+    -->
+       (pass)
+    }
+}
+
+test simple-set-tcnum {
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 7 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+    }
+
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals
+            ^tcnum-attr tcnum)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value 1 3)
+      -(<vals> ^value {<> 1 <> 3})
+    -->
+       (pass)
+    }
+}
+
+test empty-set {
+
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+      -(<vals> ^value)
+    -->
+       (pass)
+    }
+}
+
+test empty-set-tcnum {
+
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals
+            ^tcnum-attr tcnum)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+      -(<vals> ^value)
+    -->
+       (pass)
+    }
+}
+
+test one-element-set {
+
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals)
+       (<query> ^value <v>)
+    }
+    
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value 5)
+      -(<vals> ^value {<> 5})
+    -->
+       (pass)
+    }
+}
+
+test one-element-set-tcnum {
+
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals
+            ^tcnum-attr tcnum)
+       (<query> ^value <v>)
+    }
+    
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value 5)
+      -(<vals> ^value {<> 5})
+    -->
+       (pass)
+    }
+}
+
+test two-element-set {
+
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+    }
+    
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value 5 3)
+      -(<vals> ^value {<> 5 <> 3})
+    -->
+       (pass)
+    }
+}
+
+test two-element-set-tcnum {
+
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+    }
+    
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals
+            ^tcnum-attr tcnum)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value 5 3)
+      -(<vals> ^value {<> 5 <> 3})
+    -->
+       (pass)
+    }
+}
+
+
+test ordered-set {
+    smem --add {
+       (<o1> ^value 1 ^tcnum 0)
+       (<o2> ^value 2 ^tcnum 0)
+       (<o3> ^value 3 ^tcnum 0)
+       (<o4> ^value 4 ^tcnum 0)
+    }
+
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value 1 2)
+      -(<vals> ^value {<> 1 <> 2})
+    -->
+       (pass)
+    }
+}
+
+test ordered-set-tcnum {
+    smem --add {
+       (<o1> ^value 1 ^tcnum 0)
+       (<o2> ^value 2 ^tcnum 0)
+       (<o3> ^value 3 ^tcnum 0)
+       (<o4> ^value 4 ^tcnum 0)
+    }
+
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals
+            ^tcnum-attr tcnum)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value 1 2)
+      -(<vals> ^value {<> 1 <> 2})
+    -->
+       (pass)
+    }
+}
+
+test reverse-ordered-set {
+    smem --add {
+       (<o1> ^value 4 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 2 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+    }
+
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value 1 2)
+      -(<vals> ^value {<> 1 <> 2})
+    -->
+       (pass)
+    }
+}
+
+test reverse-ordered-set-tcnum {
+    smem --add {
+       (<o1> ^value 4 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 2 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+    }
+
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals
+            ^tcnum-attr tcnum)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value 1 2)
+      -(<vals> ^value {<> 1 <> 2})
+    -->
+       (pass)
+    }
+}
+
+test larger-set {
+    smem --add {
+       (<o1> ^value 4 ^tcnum 0)
+       (<o2> ^value 7 ^tcnum 0)
+       (<o3> ^value 2 ^tcnum 0)
+       (<o4> ^value 5 ^tcnum 0)
+       (<o5> ^value 6 ^tcnum 0)
+       (<o6> ^value 0 ^tcnum 0)
+       (<o7> ^value 4 ^tcnum 0)
+       (<o8> ^value -1 ^tcnum 0)
+       (<o9> ^value -3 ^tcnum 0)
+       (<o10> ^value 8 ^tcnum 0)
+    }
+
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>
+                  ^io.input-link.cycle-count 36) # expected number of dcs
+       (<vals> ^value -1 -3)
+      -(<vals> ^value {<> -1 <> -3})
+    -->
+       (pass)
+    }
+}
+
+test larger-set-tcnum {
+    smem --add {
+       (<o1> ^value 4 ^tcnum 0)
+       (<o2> ^value 7 ^tcnum 0)
+       (<o3> ^value 2 ^tcnum 0)
+       (<o4> ^value 5 ^tcnum 0)
+       (<o5> ^value 6 ^tcnum 0)
+       (<o6> ^value 0 ^tcnum 0)
+       (<o7> ^value 4 ^tcnum 0)
+       (<o8> ^value -1 ^tcnum 0)
+       (<o9> ^value -3 ^tcnum 0)
+       (<o10> ^value 8 ^tcnum 0)
+    }
+
+    sp {propose*while-loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name while-loop
+            ^query <query>
+            ^func func-two-min-vals
+            ^tcnum-attr tcnum)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>
+                  ^io.input-link.cycle-count 47) # expected number of dcs
+       (<vals> ^value -1 -3)
+      -(<vals> ^value {<> -1 <> -3})
+    -->
+       (pass)
+    }
+}
