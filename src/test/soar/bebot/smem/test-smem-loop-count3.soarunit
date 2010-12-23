@@ -70,12 +70,12 @@ test without-tcnum {
        (<o5> ^value 0 ^tcnum 0)
     }
     
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-count
             ^test count-test
@@ -102,12 +102,12 @@ test with-tcnum {
        (<o5> ^value 0 ^tcnum 0)
     }
     
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-count
             ^test count-test

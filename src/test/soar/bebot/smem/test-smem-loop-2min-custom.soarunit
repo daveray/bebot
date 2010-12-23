@@ -125,12 +125,12 @@ test simple-set {
        (<o4> ^value 1 ^tcnum 0)
     }
 
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -157,12 +157,12 @@ test simple-set-tcnum {
        (<o4> ^value 1 ^tcnum 0)
     }
 
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -184,12 +184,12 @@ test simple-set-tcnum {
 
 test empty-set {
 
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -209,12 +209,12 @@ test empty-set {
 
 test empty-set-tcnum {
 
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -235,12 +235,12 @@ test empty-set-tcnum {
 
 test one-element-set {
 
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -265,12 +265,12 @@ test one-element-set {
 
 test one-element-set-tcnum {
 
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -301,12 +301,12 @@ test two-element-set {
        (<o2> ^value 3 ^tcnum 0)
     }
     
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -332,12 +332,12 @@ test two-element-set-tcnum {
        (<o2> ^value 3 ^tcnum 0)
     }
     
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -366,12 +366,12 @@ test ordered-set {
        (<o4> ^value 4 ^tcnum 0)
     }
 
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -398,12 +398,12 @@ test ordered-set-tcnum {
        (<o4> ^value 4 ^tcnum 0)
     }
 
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -431,12 +431,12 @@ test reverse-ordered-set {
        (<o4> ^value 1 ^tcnum 0)
     }
 
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -463,12 +463,12 @@ test reverse-ordered-set-tcnum {
        (<o4> ^value 1 ^tcnum 0)
     }
 
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -502,12 +502,12 @@ test larger-set {
        (<o10> ^value 8 ^tcnum 0)
     }
 
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
@@ -540,12 +540,12 @@ test larger-set-tcnum {
        (<o10> ^value 8 ^tcnum 0)
     }
 
-    sp {propose*while-loop
+    sp {propose*bebot*smem*loop
        (state <s> ^name test-smem-loop
                  -^result)
     -->
        (<s> ^operator <o> +)
-       (<o> ^name while-loop
+       (<o> ^name bebot*smem*loop
             ^query <query>
             ^init init-two-min-vals
             ^test true-test
