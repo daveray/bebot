@@ -34,12 +34,19 @@ smem --set learning on
 sp {bebot*smem*loop*setup*required-args
    (state <s> ^superstate.operator <o>)
    (<o> ^name bebot*smem*loop
-        ^query <q>
         ^func <func>)
 -->
    (<s> ^name bebot*smem*loop
-        ^query <q>
         ^func <func>)
+}
+
+sp {bebot*smem*loop*setup*query
+   (state <s> ^init <init>
+              ^operator.name <init>
+              ^use-tcnum false # just link to superoperator query if we're not going to modify it
+              ^superstate.operator.query <q>)
+-->
+   (<s> ^query <q>)
 }
 
 sp {bebot*smem*loop*setup*init-specified
@@ -128,6 +135,28 @@ sp {bebot*smem*loop*propose*init
    (<s> ^operator <o> +)
    (<o> ^name <init>
         ^initial-context <ic>)
+}
+
+sp {bebot*smem*loop*apply*init*copy-query*create-id
+   (state <s> ^init <init>
+              ^operator.name <init>
+              ^use-tcnum true # only copy query if we're going to modify it
+              ^superstate.operator.query <q>
+             -^query)
+-->
+   (<s> ^query <newq>)
+}
+
+sp {bebot*smem*loop*apply*init*copy-query*create-attr-vals
+   (state <s> ^init <init>
+              ^operator.name <init>
+              ^use-tcnum true # only copy query if we're going to modify it
+              ^superstate.operator.query <q>
+              ^query <q-copy>)
+   (<q> ^<attr> <val>)
+  -(<q-copy> ^<attr> <val>)
+-->
+   (<q-copy> ^<attr> <val>)
 }
 
 sp {bebot*smem*loop*apply*default*init
