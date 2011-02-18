@@ -21,12 +21,12 @@
 #          * when there are no more items that match a query
 #          * when the test operator creates "^passed-test false"
 #          by default, it returns the last "result" structure created by the init or function operators to the superstate as "^result"
-#          if providing your own return operator, it should respect the create-chunks flag and test ^quiescence t if the flag is false
+#          if providing your own return operator, it should respect the allow-chunks flag and test ^quiescence t if the flag is false
 # ^tcnum-attr: optional name of attribute to use as a tcnum
-# ^create-chunks [true,false]: optional parameter that specifies whether chunks should be created
-#                              ^create-chunks [true,false] will be put on the local state even if this parameter is not specified (defaults to false)
-#                              specifies whether ^quiescence t should be tested or not when returning the result
-#                              if chunking is disabled, then this will have no effect
+# ^allow-chunks [true,false]: optional parameter that specifies whether chunks should be created if chunking is enabled
+#                             ^allow-chunks [true,false] will be put on the local state even if this parameter is not specified (defaults to false)
+#                             specifies whether ^quiescence t should be tested or not when returning the result
+#                             if chunking is disabled, then this will have no effect
 
 
 smem --set learning on
@@ -109,20 +109,20 @@ sp {bebot*smem*loop*setup*dont-use-tcnum
    (<s> ^use-tcnum false)
 }
 
-sp {bebot*smem*loop*setup*create-chunks-default
+sp {bebot*smem*loop*setup*allow-chunks-default
    (state <s> ^superstate.operator <o>)
    (<o> ^name bebot*smem*loop
-       -^create-chunks)
+       -^allow-chunks)
 -->
-   (<s> ^create-chunks false)
+   (<s> ^allow-chunks false)
 }
 
-sp {bebot*smem*loop*setup*create-chunks-param
+sp {bebot*smem*loop*setup*allow-chunks-param
    (state <s> ^superstate.operator <o>)
    (<o> ^name bebot*smem*loop
-        ^create-chunks <value>)
+        ^allow-chunks <value>)
 -->
-   (<s> ^create-chunks <value>)
+   (<s> ^allow-chunks <value>)
 }
 
 sp {bebot*smem*loop*propose*init
@@ -265,20 +265,20 @@ sp {bebot*smem*loop*propose*return*test-failed
         ^result <p>)
 }
 
-sp {bebot*smem*loop*apply*default*return*create-chunk
+sp {bebot*smem*loop*apply*default*return*allow-chunk
    (state <s> ^operator <o>
               ^superstate <ss>
-              ^create-chunks true)
+              ^allow-chunks true)
    (<o> ^name bebot*smem*loop*default*return
         ^result <r>)
 -->
    (<ss> ^result <r>)
 }
 
-sp {bebot*smem*loop*apply*default*return*dont-create-chunk
+sp {bebot*smem*loop*apply*default*return*dont-allow-chunk
    (state <s> ^operator <o>
               ^superstate <ss>
-              ^create-chunks false
+              ^allow-chunks false
               ^quiescence t)
    (<o> ^name bebot*smem*loop*default*return
         ^result <r>)

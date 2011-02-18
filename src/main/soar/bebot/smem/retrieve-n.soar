@@ -11,12 +11,12 @@
 #          * when the test operator creates "^passed-test false"
 #          by default, it returns the last "result" structure created by the init or function operators to the superstate as "^result"
 #          by default, includes the number of retrieved items (^count <n>)
-#          if providing your own return operator, it should respect the create-chunks flag and test ^quiescence t if the flag is false
+#          if providing your own return operator, it should respect the allow-chunks flag and test ^quiescence t if the flag is false
 # ^tcnum-attr: optional name of attribute to use as a tcnum
-# ^create-chunks [true,false]: optional parameter that specifies whether chunks should be created
-#                              ^create-chunks [true,false] will be put on the local state even if this parameter is not specified (defaults to false)
-#                              specifies whether ^quiescence t should be tested or not when returning the result
-#                              if chunking is disabled, then this will have no effect
+# ^allow-chunks [true,false]: optional parameter that specifies whether chunks should be created if chunking is enabled
+#                             ^allow-chunks [true,false] will be put on the local state even if this parameter is not specified (defaults to false)
+#                             specifies whether ^quiescence t should be tested or not when returning the result
+#                             if chunking is disabled, then this will have no effect
 
 
 sp {bebot*smem*retrive-n*setup*required-args
@@ -38,20 +38,20 @@ sp {bebot*smem*retrieve-n*setup*return-specified
    (<s> ^return <return>)
 }
 
-sp {bebot*smem*retrieve-n*setup*create-chunks-default
+sp {bebot*smem*retrieve-n*setup*allow-chunks-default
    (state <s> ^superstate.operator <o>)
    (<o> ^name bebot*smem*retrieve-n
-       -^create-chunks)
+       -^allow-chunks)
 -->
-   (<s> ^create-chunks false)
+   (<s> ^allow-chunks false)
 }
 
-sp {bebot*smem*retrieve-n*setup*create-chunks-param
+sp {bebot*smem*retrieve-n*setup*allow-chunks-param
    (state <s> ^superstate.operator <o>)
    (<o> ^name bebot*smem*retrieve-n
-        ^create-chunks <value>)
+        ^allow-chunks <value>)
 -->
-   (<s> ^create-chunks <value>)
+   (<s> ^allow-chunks <value>)
 }
 
 sp {bebot*smem*retrieve-n*setup*return-default
@@ -72,20 +72,20 @@ sp {bebot*smem*retrieve-n*propose*return
         ^result <r>)
 }
 
-sp {bebot*smem*retrieve-n*apply*default*return*create-chunk
+sp {bebot*smem*retrieve-n*apply*default*return*allow-chunk
    (state <s> ^operator <o>
               ^superstate <ss>
-              ^create-chunks true)
+              ^allow-chunks true)
    (<o> ^name bebot*smem*retrieve-n*default*return
         ^result <r>)
 -->
    (<ss> ^result <r>)
 }
 
-sp {bebot*smem*retrieve-n*apply*default*return*dont-create-chunk
+sp {bebot*smem*retrieve-n*apply*default*return*dont-allow-chunk
    (state <s> ^operator <o>
               ^superstate <ss>
-              ^create-chunks false
+              ^allow-chunks false
               ^quiescence t)
    (<o> ^name bebot*smem*retrieve-n*default*return
         ^result <r>)
@@ -97,7 +97,7 @@ sp {bebot*smem*retrieve-n*apply*default*return*dont-create-chunk
 sp {propose*bebot*smem*loop
    (state <s> ^name bebot*smem*retrieve-n
               ^query <query>
-              ^create-chunks <val>
+              ^allow-chunks <val>
              -^result)
 -->
    (<s> ^operator <o> +)
@@ -106,7 +106,7 @@ sp {propose*bebot*smem*loop
         ^init bebot*smem*retrieve-n*init
         ^test bebot*smem*retrieve-n*test
         ^func bebot*smem*retrieve-n*func
-        ^create-chunks <val>)
+        ^allow-chunks <val>)
 }
 
 sp {apply*bebot*smem*retrieve-n*init
