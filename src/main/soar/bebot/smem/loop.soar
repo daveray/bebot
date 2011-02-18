@@ -1,5 +1,5 @@
 # perform a while loop over items that match an smem query
-# ^name loop
+# ^name bebot*smem*loop
 # ^query: defines set to iterate over
 #         if tcnum-attr is given, current tcnum value will be added to the query (so the query will be modified)
 # ^init: optional operator that initializes the context in whatever way the user desires
@@ -40,10 +40,8 @@ sp {bebot*smem*loop*setup*required-args
         ^func <func>)
 }
 
-sp {bebot*smem*loop*setup*query
-   (state <s> ^init <init>
-              ^operator.name <init>
-              ^use-tcnum false # just link to superoperator query if we're not going to modify it
+sp {bebot*smem*loop*setup*shallow-copy-query
+   (state <s> ^use-tcnum false # just link to superoperator query if we're not going to modify it; otherwise need to make a copy (see init apply)
               ^superstate.operator.query <q>)
 -->
    (<s> ^query <q>)
@@ -137,7 +135,7 @@ sp {bebot*smem*loop*propose*init
         ^initial-context <ic>)
 }
 
-sp {bebot*smem*loop*apply*init*copy-query*create-id
+sp {bebot*smem*loop*apply*init*deep-copy-query*create-id
    (state <s> ^init <init>
               ^operator.name <init>
               ^use-tcnum true # only copy query if we're going to modify it
