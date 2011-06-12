@@ -1,0 +1,162 @@
+# retrieve up to n items that match an smem query and return as a set
+# if fewer than n items match, then return all that match
+# ^name bebot*smem*retrieve-n
+# ^query: defines set to iterate over
+#         if tcnum-attr is given, current tcnum value will be added to the query (so the query will be modified)
+# ^n [integer]: number of items to retrieve
+# ^return: optional operator that returns the result
+#          it must cause the original bebot*smem*loop operator proposal to retract
+#          it will be called under one of these conditions:
+#          * when there are no more items that match a query
+#          * when the test operator creates "^passed-test false"
+#          by default, it returns the last "result" structure created by the init or function operators to the superstate as "^result"
+#          by default, includes the number of retrieved items (^count <n>)
+#          if providing your own return operator, it should respect the allow-chunks flag and test ^quiescence t if the flag is false
+# ^tcnum-attr: optional name of attribute to use as a tcnum
+# ^allow-chunks [true,false]: optional parameter that specifies whether chunks should be created if chunking is enabled
+#                             ^allow-chunks [true,false] will be put on the local state even if this parameter is not specified (defaults to false)
+#                             specifies whether ^quiescence t should be tested or not when returning the result
+#                             if chunking is disabled, then this will have no effect
+
+
+sp {bebot*smem*retrive-n*setup*required-args
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*retrieve-n
+        ^query <q>
+        ^n <n>)
+-->
+   (<s> ^name bebot*smem*retrieve-n
+        ^query <q>
+        ^n <n>)
+}
+
+sp {bebot*smem*retrieve-n*setup*return-specified
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*retrieve-n
+        ^return <return>)
+-->
+   (<s> ^return <return>)
+}
+
+sp {bebot*smem*retrieve-n*setup*allow-chunks-default
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*retrieve-n
+       -^allow-chunks)
+-->
+   (<s> ^allow-chunks false)
+}
+
+sp {bebot*smem*retrieve-n*setup*allow-chunks-param
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*retrieve-n
+        ^allow-chunks <value>)
+-->
+   (<s> ^allow-chunks <value>)
+}
+
+sp {bebot*smem*retrieve-n*setup*return-default
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*retrieve-n
+       -^return <return>)
+-->
+   (<s> ^return bebot*smem*retrieve-n*default*return)
+}
+
+sp {bebot*smem*retrieve-n*propose*return
+   (state <s> ^name bebot*smem*retrieve-n
+              ^result <r>
+              ^return <ret>)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name <ret>
+        ^result <r>)
+}
+
+sp {bebot*smem*retrieve-n*apply*default*return*allow-chunk
+   (state <s> ^operator <o>
+              ^superstate <ss>
+              ^allow-chunks true)
+   (<o> ^name bebot*smem*retrieve-n*default*return
+        ^result <r>)
+-->
+   (<ss> ^result <r>)
+}
+
+sp {bebot*smem*retrieve-n*apply*default*return*dont-allow-chunk
+   (state <s> ^operator <o>
+              ^superstate <ss>
+              ^allow-chunks false
+              ^quiescence t)
+   (<o> ^name bebot*smem*retrieve-n*default*return
+        ^result <r>)
+-->
+   (<ss> ^result <r>)
+}
+
+
+sp {retrieve-n*propose*bebot*smem*loop
+   (state <s> ^name bebot*smem*retrieve-n
+              ^query <query>
+              ^allow-chunks <val>
+             -^result)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name bebot*smem*loop
+        ^query <query>
+        ^init bebot*smem*retrieve-n*init
+        ^test bebot*smem*retrieve-n*test
+        ^func bebot*smem*retrieve-n*func
+        ^allow-chunks <val>)
+}
+
+sp {apply*bebot*smem*retrieve-n*init
+   (state <s> ^operator <o>
+              ^superstate.n <n>)
+   (<o> ^name bebot*smem*retrieve-n*init
+        ^initial-context <ic>)
+-->
+   (<s> ^result <ic>
+        ^n <n>)
+   (<ic> ^count 0)
+}
+
+sp {apply*bebot*smem*retrieve-n*test*passed
+   (state <s> ^operator <o>
+              ^n <n>)
+   (<o> ^name bebot*smem*retrieve-n*test
+        ^previous <p>)
+   (<p> ^count <c> < <n>)
+-->
+   (<p> ^count <c> - (+ 1 <c>))
+   (<s> ^passed-test true)
+}
+
+sp {apply*bebot*smem*retrieve-n*test*failed
+   (state <s> ^operator <o>
+              ^n <n>)
+   (<o> ^name bebot*smem*retrieve-n*test
+        ^previous.count >= <n>)
+-->
+   (<s> ^passed-test false)
+}
+
+sp {apply*bebot*smem*retrieve-n*func*first
+   (state <s> ^operator <o>)
+   (<o> ^name bebot*smem*retrieve-n*func
+        ^object.value <newval>
+        ^previous <p>)
+  -(<p> ^value)
+-->
+   (<s> ^result <p>)
+   (<p> ^value <newval>)
+}
+
+sp {apply*bebot*smem*retrieve-n*func
+   (state <s> ^operator <o>)
+   (<o> ^name bebot*smem*retrieve-n*func
+        ^object.value <newval>
+        ^previous <p>)
+-->
+   (<s> ^result <p>)
+   (<p> ^value <newval>)
+}
