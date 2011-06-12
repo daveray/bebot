@@ -94,7 +94,7 @@ sp {bebot*smem*retrieve-n*apply*default*return*dont-allow-chunk
 }
 
 
-sp {propose*bebot*smem*loop
+sp {retrieve-n*propose*bebot*smem*loop
    (state <s> ^name bebot*smem*retrieve-n
               ^query <query>
               ^allow-chunks <val>

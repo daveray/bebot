@@ -149,6 +149,36 @@ test simple-set-tcnum {
     }
 }
 
+test simple-set-next {
+    smem --add {
+       (<o1> ^value 5 ^next <o2> ^head true)
+       (<o2> ^value 3 ^next <o3>)
+       (<o3> ^value 7 ^next <o4>)
+       (<o4> ^value 1 ^next nil)
+    }
+
+    sp {propose*bebot*smem*loop
+       (state <s> ^name test-smem-loop
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name bebot*smem*loop
+            ^query <query>
+            ^func func-two-min-vals
+            ^next-attr next)
+       (<query> ^value <v> ^head true)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-loop
+                  ^result <vals>)
+       (<vals> ^value 1 3)
+      -(<vals> ^value {<> 1 <> 3})
+    -->
+       (pass)
+    }
+}
+
 test empty-set {
 
     sp {propose*bebot*smem*loop
