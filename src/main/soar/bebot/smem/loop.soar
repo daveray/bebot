@@ -1,0 +1,456 @@
+# perform a while loop over items that match an smem query
+# ^name bebot*smem*loop
+# ^query: defines set to iterate over
+#         if tcnum-attr is given, current tcnum value will be added to the query (so the query will be modified)
+# ^init: optional operator that initializes the context in whatever way the user desires
+#        it must create a "^result" structure when it is finished (this will get passed into the function as "^previous")
+#        by default, just creates a "^result" identifier with no substructure
+# ^test: optional operator that performs a test to determine if should continue
+#        it must create either "^passed-test true" or "^passed-test false"
+#        by default, the test always passes (so this will loop over all matching items)
+# ^func: required operator that performs work on current item
+#        parameters:
+#            ^value <val> : the currently retrieved value/object
+#            ^previous <p> : the result from the init operator or the previous function operator
+#        it should not modify the query
+#        if it modifies the object and tcnum-attr is specified, the changes will be saved
+#        it must create a "^result" structure when it is finished (this may just be the previous structure passed through)
+# ^return: optional operator that returns the result
+#          it must cause the original bebot*smem*loop operator proposal to retract
+#          it will be called under one of these conditions:
+#          * when there are no more items that match a query
+#          * when the test operator creates "^passed-test false"
+#          by default, it returns the last "result" structure created by the init or function operators to the superstate as "^result"
+#          if providing your own return operator, it should respect the allow-chunks flag and test ^quiescence t if the flag is false
+# ^tcnum-attr: optional name of attribute to use as a tcnum
+# ^next-attr: optional name of attribute to use as a next pointer (if objects are in a list). Overrides the use of tcnum-attr.
+# ^allow-chunks [true,false]: optional parameter that specifies whether chunks should be created if chunking is enabled
+#                             ^allow-chunks [true,false] will be put on the local state even if this parameter is not specified (defaults to false)
+#                             specifies whether ^quiescence t should be tested or not when returning the result
+#                             if chunking is disabled, then this will have no effect
+
+
+smem --set learning on
+
+sp {bebot*smem*loop*setup*required-args
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*loop
+        ^func <func>)
+-->
+   (<s> ^name bebot*smem*loop
+        ^func <func>)
+}
+
+sp {bebot*smem*loop*setup*shallow-copy-query
+   (state <s> ^use-tcnum false # just link to superoperator query if we're not going to modify it; otherwise need to make a copy (see init apply)
+              ^superstate.operator.query <q>)
+-->
+   (<s> ^query <q>)
+}
+
+sp {bebot*smem*loop*setup*init-specified
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*loop
+        ^init <init>)
+-->
+   (<s> ^init <init>)
+}
+
+sp {bebot*smem*loop*setup*init-default
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*loop
+       -^init <init>)
+-->
+   (<s> ^init bebot*smem*loop*default*init)
+}
+
+sp {bebot*smem*loop*setup*test-specified
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*loop
+        ^test <test>)
+-->
+   (<s> ^test <test>)
+}
+
+sp {bebot*smem*loop*setup*test-default
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*loop
+       -^test <test>)
+-->
+   (<s> ^test bebot*smem*loop*default*test)
+}
+
+sp {bebot*smem*loop*setup*return-specified
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*loop
+        ^return <return>)
+-->
+   (<s> ^return <return>)
+}
+
+sp {bebot*smem*loop*setup*return-default
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*loop
+       -^return <return>)
+-->
+   (<s> ^return bebot*smem*loop*default*return)
+}
+
+sp {bebot*smem*loop*setup*use-tcnum
+   (state <s> ^superstate.operator <o>)
+   (<o> ^tcnum-attr <attr>
+       -^next-attr)
+-->
+   (<s> ^use-tcnum true
+        ^tcnum-attr <attr>)
+}
+
+sp {bebot*smem*loop*setup*dont-use-tcnum
+   (state <s> ^superstate.operator <o>)
+  -(<o> ^tcnum-attr)
+-->
+   (<s> ^use-tcnum false)
+}
+
+sp {bebot*smem*loop*setup*use-next
+   (state <s> ^superstate.operator.next-attr <attr>)
+-->
+   (<s> ^use-next true
+        ^use-tcnum false
+        ^next-attr <attr>)
+}
+
+sp {bebot*smem*loop*setup*dont-use-next
+   (state <s> ^superstate.operator <o>)
+  -(<o> ^next-attr)
+-->
+   (<s> ^use-next false)
+}
+
+sp {bebot*smem*loop*setup*use-prohibit
+   (state <s> ^use-next false
+              ^use-tcnum false)
+-->
+   (<s> ^use-prohibit true)
+}
+
+sp {bebot*smem*loop*setup*allow-chunks-default
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*loop
+       -^allow-chunks)
+-->
+   (<s> ^allow-chunks false)
+}
+
+sp {bebot*smem*loop*setup*allow-chunks-param
+   (state <s> ^superstate.operator <o>)
+   (<o> ^name bebot*smem*loop
+        ^allow-chunks <value>)
+-->
+   (<s> ^allow-chunks <value>)
+}
+
+sp {bebot*smem*loop*propose*init
+   (state <s> ^name bebot*smem*loop
+              ^init <init>
+             -^previous)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name <init>
+        ^initial-context <ic>)
+}
+
+sp {bebot*smem*loop*apply*init*deep-copy-query*create-id
+   (state <s> ^init <init>
+              ^operator.name <init>
+              ^use-tcnum true # only copy query if we're going to modify it
+              ^superstate.operator.query <q>
+             -^query)
+-->
+   (<s> ^query <newq>)
+}
+
+sp {bebot*smem*loop*apply*init*copy-query*create-attr-vals
+   (state <s> ^init <init>
+              ^operator.name <init>
+              ^use-tcnum true # only copy query if we're going to modify it
+              ^superstate.operator.query <q>
+              ^query <q-copy>)
+   (<q> ^<attr> <val>)
+  -(<q-copy> ^<attr> <val>)
+-->
+   (<q-copy> ^<attr> <val>)
+}
+
+sp {bebot*smem*loop*apply*default*init
+   (state <s> ^operator <o>)
+   (<o> ^name bebot*smem*loop*default*init
+        ^initial-context <ic>)
+-->
+   (<s> ^result <ic>)
+}
+
+sp {bebot*smem*loop*apply*default*init*convert-result-to-previous
+   (state <s> ^init <init>
+              ^operator.name <init>
+              ^result <r>
+             -^previous)
+-->
+   (<s> ^result <r> -
+        ^previous <r>)
+}
+
+sp {bebot*smem*loop*propose*create-query
+   (state <s> ^name bebot*smem*loop
+              ^previous
+             -^query-created true)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name create-query)
+}
+
+sp {bebot*smem*loop*apply*create-query*dont-use-tcnum
+   (state <s> ^operator.name create-query
+              ^smem.command <c>
+              ^query <query>
+              ^use-tcnum false)
+-->
+   (<c> ^query <query>)
+   (<s> ^query-created true)
+}
+
+sp {bebot*smem*loop*apply*create-query*use-tcnum
+   (state <s> ^operator.name create-query
+              ^smem.command <c>
+              ^query <query>
+              ^use-tcnum true)
+-->
+   (<c> ^query <query>)
+}
+
+sp {bebot*smem*loop*apply*create-query*add-tcnum
+   (state <s> ^operator.name create-query
+              ^smem <smem>)
+   (<smem> ^result.retrieved <object>
+           ^command.query <q>)
+   (<object> ^tcnum <num>)
+-->
+   (<q> ^tcnum <num>)
+   (<s> ^query-created true)
+   (<s> ^query <q>) # save this so we can reuse it later
+}
+
+sp {bebot*smem*loop*apply*create-query*add-tcnum*failed-retrieval
+   (state <s> ^operator.name create-query
+              ^smem <smem>)
+   (<smem> ^result.failure)
+-->
+   (<s> ^query-created true)
+}
+
+sp {bebot*smem*loop*propose*test
+   (state <s> ^name bebot*smem*loop
+              ^test <test>
+              ^query-created true
+              ^smem.result.retrieved
+              ^previous <p>
+             -^passed-test) # could be true or false
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name <test>
+        ^previous <p>)
+}
+
+sp {bebot*smem*loop*apply*default*test
+   (state <s> ^operator.name bebot*smem*loop*default*test
+              ^smem.result.retrieved)
+-->
+   (<s> ^passed-test true)
+}
+
+sp {bebot*smem*loop*propose*return*no-more-items
+   (state <s> ^name bebot*smem*loop
+              ^query-created true
+              ^smem.result.<< failure bad-cmd >>
+              ^previous <p>
+              ^return <ret>)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name <ret>
+        ^result <p>)
+}
+
+sp {bebot*smem*loop*propose*return*test-failed
+   (state <s> ^name bebot*smem*loop
+              ^passed-test false
+              ^previous <p>
+              ^return <ret>)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name <ret>
+        ^result <p>)
+}
+
+sp {bebot*smem*loop*apply*default*return*allow-chunk
+   (state <s> ^operator <o>
+              ^superstate <ss>
+              ^allow-chunks true)
+   (<o> ^name bebot*smem*loop*default*return
+        ^result <r>)
+-->
+   (<ss> ^result <r>)
+}
+
+sp {bebot*smem*loop*apply*default*return*dont-allow-chunk
+   (state <s> ^operator <o>
+              ^superstate <ss>
+              ^allow-chunks false
+              ^quiescence t)
+   (<o> ^name bebot*smem*loop*default*return
+        ^result <r>)
+-->
+   (<ss> ^result <r>)
+}
+
+sp {bebot*smem*loop*propose*function
+   (state <s> ^name bebot*smem*loop
+              ^smem.result.retrieved <object>
+              ^func <func>
+              ^passed-test true
+              ^previous <p>
+             -^result)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name <func>
+        ^object <object>
+        ^previous <p>)
+}
+
+sp {bebot*smem*loop*propose*store-updated-value
+   (state <s> ^name bebot*smem*loop
+              ^result
+              ^previous
+              ^use-tcnum true
+             -^stored-updated-value true)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name store-updated-value)
+}
+
+sp {bebot*smem*loop*apply*store-updated-value
+   (state <s> ^operator.name store-updated-value
+              ^tcnum-attr <attr>
+              ^smem <smem>)
+   (<smem> ^result.retrieved <object>
+           ^command <c>)
+   (<object> ^<attr> <value>)
+   (<c> ^query <q>)
+-->
+   (<c> ^query <q> -
+        ^store <object>)
+   (<object> ^<attr> <value> - (+ 1 <value>))
+   (<s> ^stored-updated-value true)
+}
+
+sp {bebot*smem*loop*use-tcnum*propose*reset-loop
+   (state <s> ^name bebot*smem*loop
+              ^use-tcnum true
+              ^stored-updated-value true)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name reset-loop)   
+}
+
+sp {bebot*smem*loop*use-next*propose*reset-loop
+   (state <s> ^name bebot*smem*loop
+              ^use-next true
+              ^next-attr <next-attr>
+              ^smem <smem>
+              ^result
+              ^previous)
+   (<smem> ^result.retrieved.<next-attr>) # make sure there is a next item
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name reset-loop)   
+}
+
+sp {bebot*smem*loop*use-prohibit*propose*reset-loop
+   (state <s> ^name bebot*smem*loop
+              ^use-prohibit true
+              ^result
+              ^previous)
+-->
+   (<s> ^operator <o> +)
+   (<o> ^name reset-loop)   
+}
+
+sp {bebot*smem*loop*use-prohibit*apply*reset-loop
+   (state <s> ^use-prohibit true
+              ^operator.name reset-loop
+              ^smem <smem>
+              ^result <r>
+              ^previous <p>
+              ^passed-test true)
+   (<smem> ^command <c>
+           ^result.retrieved <object>)
+-->
+   (<c> ^prohibit <object>)
+   (<s> ^passed-test true -
+        ^result <r> -
+        ^previous <p> - <r>)
+}
+
+sp {bebot*smem*loop*use-tcnum*apply*reset-loop
+   (state <s> ^use-tcnum true
+              ^operator.name reset-loop
+              ^smem.command <c>
+              ^result <r>
+              ^previous <p>
+              ^passed-test true
+              ^stored-updated-value true
+              ^query <q>)
+   (<c> ^store <store>)
+-->
+   (<c> ^store <store> -
+        ^query <q>)
+   (<s> ^passed-test true -
+        ^stored-updated-value true -
+        ^result <r> -
+        ^previous <p> - <r>)
+}
+
+sp {bebot*smem*loop*use-next*apply*reset-loop*first
+   (state <s> ^use-next true
+              ^next-attr <next-attr>
+              ^operator.name reset-loop
+              ^smem <smem>
+              ^result <r>)
+   (<smem> ^command <c>
+           ^result.retrieved.<next-attr> <next>)
+   (<c> ^query <cur>)
+-->
+   (<c> ^query <cur> - 
+        ^retrieve <next>)
+   (<s> ^passed-test true -
+        ^stored-updated-value true -
+        ^result <r> -
+        ^previous <p> - <r>)
+}
+
+sp {bebot*smem*loop*use-next*apply*reset-loop*rest
+   (state <s> ^use-next true
+              ^next-attr <next-attr>
+              ^operator.name reset-loop
+              ^smem <smem>
+              ^result <r>
+              ^previous <p>)
+   (<smem> ^command <c>
+           ^result.retrieved.<next-attr> <next>)
+   (<c> ^retrieve <cur>)
+-->
+   (<c> ^retrieve <cur> - <next>)
+   (<s> ^passed-test true -
+        ^stored-updated-value true -
+        ^result <r> -
+        ^previous <p> - <r>)
+}

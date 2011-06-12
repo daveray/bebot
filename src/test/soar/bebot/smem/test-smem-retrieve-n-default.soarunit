@@ -1,0 +1,255 @@
+# retrieve-n tests
+
+setup {
+    source ../common.soar
+   
+    # bebot common proposes this
+    sp {apply*init*add-state-name
+        (state <s> ^operator.name init)
+    -->
+        (<s> ^name test-smem-retrieve-n)
+    }
+}
+
+test without-tcnum {
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 7 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+       (<o5> ^value 0 ^tcnum 0)
+    }
+    
+    sp {propose*bebot*smem*retrieve-n
+       (state <s> ^name test-smem-retrieve-n
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name bebot*smem*retrieve-n
+            ^query <query>
+            ^n 3)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-retrieve-n
+                  ^result <val>)
+       (<val> ^value 0 1 7
+              ^count 3)
+      -(<val> ^value {<> 0 <> 1 <> 7})
+    -->
+       (pass)
+    }
+}
+
+test with-tcnum {
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 7 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+       (<o5> ^value 0 ^tcnum 0)
+    }
+    
+    sp {propose*bebot*smem*retrieve-n
+       (state <s> ^name test-smem-retrieve-n
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name bebot*smem*retrieve-n
+            ^query <query>
+            ^n 3
+            ^tcnum-attr tcnum)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-retrieve-n
+                  ^result <val>)
+       (<val> ^value 0 1 7
+              ^count 3)
+      -(<val> ^value {<> 0 <> 1 <> 7})
+    -->
+       (pass)
+    }
+}
+
+test without-tcnum-request-too-many {
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 7 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+       (<o5> ^value 0 ^tcnum 0)
+    }
+    
+    sp {propose*bebot*smem*retrieve-n
+       (state <s> ^name test-smem-retrieve-n
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name bebot*smem*retrieve-n
+            ^query <query>
+            ^n 10)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-retrieve-n
+                  ^result <val>)
+       (<val> ^value 0 1 7 3 5
+              ^count 5)
+      -(<val> ^value {<> 0 <> 1 <> 7 <> 3 <> 5})
+    -->
+       (pass)
+    }
+}
+
+test with-tcnum-request-too-many {
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 7 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+       (<o5> ^value 0 ^tcnum 0)
+    }
+    
+    sp {propose*bebot*smem*retrieve-n
+       (state <s> ^name test-smem-retrieve-n
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name bebot*smem*retrieve-n
+            ^query <query>
+            ^n 10
+            ^tcnum-attr tcnum)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-retrieve-n
+                  ^result <val>)
+       (<val> ^value 0 1 7 3 5
+              ^count 5)
+      -(<val> ^value {<> 0 <> 1 <> 7 <> 3 <> 5})
+    -->
+       (pass)
+    }
+}
+
+test without-tcnum-request-too-many {
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 7 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+       (<o5> ^value 0 ^tcnum 0)
+    }
+    
+    sp {propose*bebot*smem*retrieve-n
+       (state <s> ^name test-smem-retrieve-n
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name bebot*smem*retrieve-n
+            ^query <query>
+            ^n 10)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-retrieve-n
+                  ^result <val>)
+       (<val> ^value 0 1 7 3 5
+              ^count 5)
+      -(<val> ^value {<> 0 <> 1 <> 7 <> 3 <> 5})
+    -->
+       (pass)
+    }
+}
+
+test with-tcnum-request-too-many {
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 7 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+       (<o5> ^value 0 ^tcnum 0)
+    }
+    
+    sp {propose*bebot*smem*retrieve-n
+       (state <s> ^name test-smem-retrieve-n
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name bebot*smem*retrieve-n
+            ^query <query>
+            ^n 10
+            ^tcnum-attr tcnum)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-retrieve-n
+                  ^result <val>)
+       (<val> ^value 0 1 7 3 5
+              ^count 5)
+      -(<val> ^value {<> 0 <> 1 <> 7 <> 3 <> 5})
+    -->
+       (pass)
+    }
+}
+
+test without-tcnum-request-zero {
+    smem --add {
+       (<o1> ^value 5 ^tcnum 0)
+       (<o2> ^value 3 ^tcnum 0)
+       (<o3> ^value 7 ^tcnum 0)
+       (<o4> ^value 1 ^tcnum 0)
+       (<o5> ^value 0 ^tcnum 0)
+    }
+    
+    sp {propose*bebot*smem*retrieve-n
+       (state <s> ^name test-smem-retrieve-n
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name bebot*smem*retrieve-n
+            ^query <query>
+            ^n 0)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-retrieve-n
+                  ^result <val>)
+       (<val> -^value
+               ^count 0)
+    -->
+       (pass)
+    }
+}
+
+test with-tcnum-request-zero {
+    
+    sp {propose*bebot*smem*retrieve-n
+       (state <s> ^name test-smem-retrieve-n
+                 -^result)
+    -->
+       (<s> ^operator <o> +)
+       (<o> ^name bebot*smem*retrieve-n
+            ^query <query>
+            ^n 0
+            ^tcnum-attr tcnum)
+       (<query> ^value <v>)
+    }
+    
+    sp {test*result
+       (state <s> ^name test-smem-retrieve-n
+                  ^result <val>)
+       (<val> -^value
+               ^count 0)
+    -->
+       (pass)
+    }
+}
