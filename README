@@ -13,3 +13,4 @@ Everything is thoroughly tested with SoarUnit (http://code.google.com/p/jsoar/wi
 
 $ soarunit --ui -R /path/to/bebot
 
+Bebot is licensed under the Apache 2 license (http://www.apache.org/licenses/LICENSE-2.0.html)
